@@ -5,6 +5,7 @@
 #include "lexer.h"
 
 int main(int argc, char *argv[]) {
+usage(argc
 if (argc < 2) {
         fprintf(stderr, "Usage: %s file1 file2 ... fileN\n", argv[0]);
         return 1;
