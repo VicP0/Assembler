@@ -181,4 +181,13 @@ int valid_dec_macr(char* input)
     return 1;
 }
 
+void  remove_spaces (char* input)
+{
+    int i =0;
+    while(isspace(input[i]))
+    {
+        i++;
+    }
 
+    memmove(input, input + i, strlen(input + i) + 1);
+}
