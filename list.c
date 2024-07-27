@@ -39,8 +39,8 @@ int add_node(node **head, node *new) {
     return 1;
 }
 void append_content(node *n, char *new_content) {
-    size_t old_content_length = strlen(n->content);
-    size_t new_content_length = strlen(new_content);
+    int old_content_length = (int)strlen(n->content);
+    int new_content_length = (int)strlen(new_content);
 
     char *temp = (char*)realloc(n->content, old_content_length + new_content_length -1);
     n->content = temp;
