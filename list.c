@@ -38,7 +38,7 @@ int add_node(node **head, node *new) {
     runner->next = new;
     return 1;
 }
-void append_content(node *n, const char *new_content) {
+void append_content(node *n, char *new_content) {
     size_t old_content_length = strlen(n->content);
     size_t new_content_length = strlen(new_content);
 
