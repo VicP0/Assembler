@@ -159,9 +159,9 @@ int valid_macro (char* input)
     if(find_opcode(input) < 0 || find_register(input) < 0
          || find_instraction(input) < 0)
     {
-        return -1;
+        return 1;
     }
-    return 1;
+    return -1;
 }
 
 int valid_dec_macr(char* input)
