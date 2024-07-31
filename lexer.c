@@ -191,3 +191,50 @@ void  remove_spaces (char* input)
 
     memmove(input, input + i, strlen(input + i) + 1);
 }
+
+int parse_parameters(char* input , int num_op){
+    char first_param[MAX_LINE_LENGTH];
+    char second_param[MAX_LINE_LENGTH];
+    int i = 0;
+    int j = 0;
+    int error = 1;
+
+    if(num_op < 5){
+        while(input[0] != ',') {
+            first_param[i++] = *input++;
+        }
+        first_param[i] = '\0';
+
+        if(input[0] == ',') {
+            ++input;
+        }
+        if(input[0] == '\0'){
+            error = -1;
+            return error;
+        }
+        while(input[0] != '\0') {
+            second_param[j++] = *input++;
+        }
+        second_param[j] = '\0';
+    }
+
+    if(num_op > 4 && num_op < 14){
+        while(input[0] != '\0') {
+            first_param[i++] = *input++;
+        }
+        first_param[i] = '\0';
+    } else{
+            if(input[0] != '\0'){
+                error = -1;
+                return -1;
+            }
+    }
+    return error;
+
+}
+
+int check_if_valid_parameters(char* first_parm , char* second_parm){
+    if(find_register(first_parm) == -1 || find_register(second_parm) == -1){
+
+    }
+}
