@@ -1,27 +1,70 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "label_list.h"
 
-
-
-
-
-char *non_macro_line_processing(char *str){
-    remove_spaces(str);
+node* create_node(char *name, int adress, int is_extern, int is_instruction) {
+    node *new_node = (node*)malloc(sizeof(node));
+    new_node->name = (char*)malloc(strlen(name) + 1);
+    strcpy(new_node->name, name);
+    new_node->adress = adress;
+    new_node->is_extern = is_extern;
+    new_node->is_instruction = is_instruction;
+    new_node->next = NULL;
+    return new_node;
 }
 
-int empty_line{
+node *search_node(node *head, char *name){
+    node *runner = head;
+    while (runner != NULL){
+        if(strcmp(runner->name,name)== 0)
+            return runner;
+        runner = runner->next;
+    }
+    return NULL;
 
-};
-
-int check_if_macr(char* input)
-{
-    char* temp;
-    remove_spaces(input);
-    temp  = (char*)malloc((strlen(input) + 1) * sizeof(char));
-
-    temp = strncpy(temp , temp , 4);
-
-    if(valid_dec_macro(temp) > 0)
-        return 0;
-
-    return -1;
 }
+int add_node(node **head, node *new) {
+    if (*head == NULL){
+        *head = new;
+        return 1;
+    }
+    node *runner = *head;
+    if (search_node(*head, new->name) != NULL) {
+        return 0;  //node already exist
+    }
+
+    if (*head == NULL) {
+        *head = new;
+    }
+    while (runner->next != NULL) {
+        runner = runner->next;
+    }
+    runner->next = new;
+    return 1;
+}
+void append_content(node *n, char *new_content) {
+    int old_content_length = (int)strlen(n->content);
+    int new_content_length = (int)strlen(new_content);
+
+    char *temp = (char*)realloc(n->content, old_content_length + new_content_length +1);
+    n->content = temp;
+    strcpy(n->content + old_content_length, new_content);// moving the pointer to the plaxce were the string previus string end and then appened
+}
+
+void free_node(node *node1){
+    /* Free memory allocated for node */
+    free(node1->name);
+    free(node1->content);
+    free(node1);
+}
+
+void free_list(node *head){
+    /* Free memory for the list node*/
+    while(head != NULL) {
+        node *temp = head;
+        head = head->next;
+        free_node(temp);
+    }
+}
+
