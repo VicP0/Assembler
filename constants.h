@@ -57,9 +57,11 @@
 #define REGISTER_ENCODE 3
 
 /* E,R,A operands */
-#define A 2//change
 #define E 0//changed
 #define R 1//changed
+#define A 2//change
+
+
 
 #define READ_MODE "r"
 #define WRITE_MODE "w"
