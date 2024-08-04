@@ -67,7 +67,7 @@
 #define WRITE_MODE "w"
 #define READ_WRITE_MODE "r+"
 #define MACRO_KEYWORD "macr"//changed
-#define END_MACRO_KEYWORD "endmacr"//change
+#define END_MACRO_KEYWORD "endmacr"//changed
 
 #define DATA_STORE_COMMAND ".data"
 #define STRING_STORE_COMMAND ".string"
