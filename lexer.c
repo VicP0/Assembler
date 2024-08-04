@@ -30,7 +30,7 @@ int immediateAddressing(char *word) {
     return index;
 }
 
-int jumpAdressing(char *word) {
+int bypassAdressing(char *word) {
     int index = 1;
     if(word[0] != '*')
         return 0;
