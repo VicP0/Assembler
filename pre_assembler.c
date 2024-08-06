@@ -80,6 +80,15 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
                     /* setting macroName */
                     strcpy(macroName, token);
                     macroStatus = IN_MACRO_BODY;
+///////////////////changed from her
+                    // Check if there are extra characters after the macro name
+                    token = strtok(NULL, " \t"); // Move to the next token
+                    if (token != NULL) {
+                        fprintf(stderr, "%s: %s", macroName,ILLEGAL_TEXT_AFTER_MACRO_NAME_ERROR_MESSAGE);
+                        free(macroName);  // Free the allocated memory for macroName
+                        return 0;  // Indicate an error
+                    }
+ ////////////////////////////til here
                 }
                 token = strtok(NULL, " \t");
             }
@@ -111,6 +120,7 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
                 /* check if macro name is an instruction name */
                 if (is_command(macroName)) {
                     /* TODO: print error macro name is an instruction */
+                    free(macroName);//changed
                     fprintf(stderr, "%s: %s", macroName, MACRO_NAME_ILLEGAL_ERROR_MESSAGE);
                     return 0;
                 }
