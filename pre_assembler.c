@@ -80,17 +80,17 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
                     /* setting macroName */
                     strcpy(macroName, token);
                     macroStatus = IN_MACRO_BODY;
-///////////////////changed from her
+                }
+                token = strtok(NULL, " \t");
+                if(macroStatus == IN_MACRO_BODY){
+                     ///////////////////changed from her
                     // Check if there are extra characters after the macro name
-                    token = strtok(NULL, " \t"); // Move to the next token
                     if (token != NULL) {
                         fprintf(stderr, "%s: %s", macroName,ILLEGAL_TEXT_AFTER_MACRO_NAME_ERROR_MESSAGE);
                         free(macroName);  // Free the allocated memory for macroName
                         return 0;  // Indicate an error
                     }
  ////////////////////////////til here
-                }
-                token = strtok(NULL, " \t");
             }
 
             memset(currentLine, 0, MAX_WORD_LENGTH);
@@ -101,13 +101,22 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
 
         /* reading macro body */
         if (macroStatus == IN_MACRO_BODY) {
-            if (strlen(cutCurrentLine) != strlen(END_MACRO_KEYWORD)) endMacro = 0;
-            else {
-                for (j = 0; j < end-start+1; j++) {
-                    if (cutCurrentLine[j] != END_MACRO_KEYWORD[j]) endMacro = 0;
+///////////////////change from here
+            
+            if (strlen(cutCurrentLine) >= strlen(END_MACRO_KEYWORD)){
+                for (j = 0; j < strlen(END_MACRO_KEYWORD); j++) {
+                    if (cutCurrentLine[j] != END_MACRO_KEYWORD[j]) 
+                        endMacro = 0;
                 }
             }
             if (endMacro) {
+                 if (strlen(cutCurrentLine) > strlen(END_MACRO_KEYWORD)){
+                    fprintf(stderr, "%s: %s", macroName,ILLEGAL_TEXT_AFTER_MACRO_END_ERROR_MESSAGE);
+                    free(macroBody);
+                    free(macroName);  // Free the allocated memory for macroName
+                        return 0;  // Indicate an error
+                }
+//////////////////till here
                 if (currentMacroLength == 0) {
                     /* TODO: print error empty macro */
                     return 0;
