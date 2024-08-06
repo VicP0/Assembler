@@ -19,7 +19,7 @@
 #define LABEL_DECLARED_ENTRY_ERROR_MESSAGE "Label already declared as entry label.\n"
 #define REDEFINITION_OF_LABEL_ERROR_MESSAGE "Label already defined.\n"
 #define LABEL_UNDEFINED_ERROR_MESSAGE "Label wasn't defined.\n"
-#define ILLEGAL_TEXT_AFTER_MACRO_NAME_ERROR_MESSAGE "macro contain extra characters found after macro name.\n" // changed
+#define ILLEGAL_TEXT_AFTER_MACRO_NAME_ERROR_MESSAGE "Extra characters found after macro name\n" // changed
 #define MACRO_NAME_ILLEGAL_ERROR_MESSAGE "Macro name is illegal.\n"
 
 #define UNKNOWN_CODE -1
