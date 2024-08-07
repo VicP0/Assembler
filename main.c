@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
         }
 
         if (!first_scan(postDeployReadFiles[i], preScanFiles[i], labelsTables[i],
-                        &IC, &DC, entriesTables[i], externsTables[i])) {
+                        &IC, &DC, entriesTables[i], externsTables[i],macrosTables[i])) {/////////////changed macro table was added as input 
             IC = 100;
             DC = 0;
 
