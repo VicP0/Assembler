@@ -1,13 +1,13 @@
 #include "pre_assembler.h"
 
-int deploy_macros(FILE *readFile, FILE *writeFile, hashTable *labelTable, int *longestMacroBodyLength) {
+int deploy_macros(FILE *readFile, FILE *writeFile, hashTable *macroTable, int *longestMacroBodyLength) {
     calculate_longest_macro_body(readFile, longestMacroBodyLength);
     /* going back to start of readFile to reiterate it for writing */
     rewind(readFile);
-    if (!read_macros_from_file(readFile, labelTable, longestMacroBodyLength)) return 0;
+    if (!read_macros_from_file(readFile, macroTable, longestMacroBodyLength)) return 0;
     /* going back to start of readFile to reiterate it for writing */
     rewind(readFile);
-    write_macros_to_file(readFile, writeFile, labelTable);
+    write_macros_to_file(readFile, writeFile, macroTable);
     *longestMacroBodyLength = -1;
 
     /* freeing files and hash table */
