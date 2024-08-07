@@ -6,7 +6,7 @@ int read_macros_from_file(FILE *file, hashTable *table, int *longestMacroBody);
 /* creating .am file and deploying all macros' bodies based on their names from hash table */
 int write_macros_to_file(FILE *readFile, FILE *writeFile, hashTable *table);
 /* process of reading from .as file and writing to .am file */
-int deploy_macros(FILE *readFile, FILE *writeFile, hashTable *labelTable, int *longestMacroBodyLength);
+int deploy_macros(FILE *readFile, FILE *writeFile, hashTable *macroTable, int *longestMacroBodyLength);////////////changed to macroTable
 
 /* checking longest macro body for memory allocation in read_macros_from_file */
 void calculate_longest_macro_body(FILE *file, int *longest);
