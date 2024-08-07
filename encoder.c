@@ -5,7 +5,7 @@ const char *REGISTERS_NAMES[] = {
 
 
 int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *DC,
-               hashTableInt *entriesTable, hashTableInt *externsTable) {
+               hashTableInt *entriesTable, hashTableInt *externsTable, hashTable *macroTable) {/////////changed
     int i, j, startParamsIdx;
     /* flag whether to encode currentLine of not */
     int encodeLine = 1, continueToSecondScan = 1;
