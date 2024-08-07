@@ -9,7 +9,7 @@ enum addressingType {
 /* checking .am file for labels, data/string declarations and encoding all statements that don't include a label
  * setting every to-be-encoded-label's line with the label's name */
 int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *DC,
-               hashTableInt *entriesTable, hashTableInt *externsTable);
+               hashTableInt *entriesTable, hashTableInt *externsTable, hashTable *macroTable);/////////////////changed macrotable added
 /* checking .temp_ob file created from first_scan function and checking every line marked with a label name to encode it with it's value inserted in first_scan */
 int second_scan(char *fileName, FILE *readFile, FILE *writeFile, hashTableInt *table, hashTableInt *entriesTable, hashTableInt *externsTable, int *IC, int *DC);
 
