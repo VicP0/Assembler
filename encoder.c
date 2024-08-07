@@ -39,7 +39,7 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
         } else continue;
 
         strcpy(copyCurrentLine, currentLine);
-        L = validLine(copyCurrentLine);
+        L = validLine(copyCurrentLine);/////////////need to be change for our cases
         strcpy(copyCurrentLine, currentLine);
         currentLabelLength = 0;
 
