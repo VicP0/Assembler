@@ -55,7 +55,7 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
         }
 
         if (command_code(currentLine) == RTS_CODE || command_code(currentLine) == STOP_CODE) {
-            encode_regular_command(writeFile, command_code(currentLine),
+            encode_regular_command(writeFile, command_code(currentLine),////////////////////need to be changed
                                    currentLine, lineNum, encodedString);
             (*IC) += L;
             continue;
