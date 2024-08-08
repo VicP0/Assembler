@@ -146,6 +146,14 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
                 strncpy(labelName, &currentLine[j-currentLabelLength], currentLabelLength);
                 labelName[currentLabelLength] = '\0';
 
+                     //////////functionw as added     
+                if(contains_key(macroTable,labelName)){
+                       fprintf(stderr, "Label %s already exists in macros!\n", labelName);
+                        continueToSecondScan = 0;
+                        continue; 
+                }
+                //til here
+                    
                 /* handle duplications */
                 if (contains_key_int(externsTable, labelName)) {
                     fprintf(stderr, "%s: %s", labelName, LABEL_DECLARED_EXTERN_ERROR_MESSAGE);
@@ -239,7 +247,15 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
         /* initializing labelName */
         strncpy(labelName, &currentLine[i-currentLabelLength], currentLabelLength);
         labelName[currentLabelLength] = '\0';
-
+            
+           //////////functionw as added     
+         if(contains_key(macroTable,labelName)){
+                   fprintf(stderr, "Label %s already exists in macros!\n", labelName);
+                   continueToSecondScan = 0;
+                   continue; 
+        }
+                //til here
+            
         /* skipping colon and space */
         i += 2;
 
