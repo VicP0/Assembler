@@ -55,7 +55,7 @@
 
 #define IMMEDIATE_ENCODE 0
 #define DIRECT_ENCODE 1
-#define JUMP_ENCODE 2 //changed
+#define BYPASS_ENCODE 2 //changed
 #define REGISTER_ENCODE 3
 
 /* E,R,A operands */
