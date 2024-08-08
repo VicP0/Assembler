@@ -646,8 +646,8 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
         }
 
             /* only destination operand instructions (no jmp, bne, jsr) can be registers or label only */
-        case NOT_CODE:
         case CLR_CODE:
+        case NOT_CODE: //changed the oreder
         case INC_CODE:
         case DEC_CODE:
         case RED_CODE:
@@ -910,7 +910,7 @@ int command_code(char *command) {
     if (strcmp(commandSubstring, "cmp") == 0) commandCode = CMP_CODE;
     if (strcmp(commandSubstring, "add") == 0) commandCode = ADD_CODE;
     if (strcmp(commandSubstring, "sub") == 0) commandCode = SUB_CODE;
-    if (strcmp(commandSubstring, "lea") == 0) commandCode = LEA_CODE;
+    if (strcmp(commandSubstring, "lea") == 0) commandCode = LEA_CODE; // changed the oreder with not *opption to take it out to lexer 
     if (strcmp(commandSubstring, "clr") == 0) commandCode = CLR_CODE;
     if (strcmp(commandSubstring, "not") == 0) commandCode = NOT_CODE;
     if (strcmp(commandSubstring, "inc") == 0) commandCode = INC_CODE;
