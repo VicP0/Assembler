@@ -85,7 +85,13 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
                 /* initializing labelName */
                 strncpy(labelName, &currentLine[j-currentLabelLength], currentLabelLength);
                 labelName[currentLabelLength] = '\0';
-
+                //////////functionw as added     
+                if(contains_key(macroTable,labelName)){
+                       fprintf(stderr, "Label %s already exists in macros!\n", labelName);
+                        continueToSecondScan = 0;
+                        continue; 
+                }
+                //til here
                 /* handle duplications and handling case where label was declared before ".entry labelName" command */
                 if (contains_key_int(table, labelName)) {
                     /* setting isData to -1 means no change for initial isData value */
