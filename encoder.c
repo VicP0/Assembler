@@ -726,8 +726,8 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
             labelBeforeParams[j] = '\0';
             thirdEncode = -1;
 
-            /* all jmp/bne/jsr commands are encoded with jump encoded words in dest operand */
-            encodedWord = operationEncode | (JUMP_ENCODE << SHIFTS_FOR_DEST);
+            /* all jmp/bne/jsr commands are encoded with bypass encoded words in dest operand */
+            encodedWord = operationEncode | (BYPASS_ENCODE << SHIFTS_FOR_DEST);
 
             if ((secondRegisterIdx = is_register(labelBeforeParams)) != -1) {
                 secondRegisterIdx = secondRegisterIdx << SHIFTS_FOR_DEST_REGISTER;
