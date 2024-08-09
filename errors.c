@@ -7,7 +7,7 @@ void errors(int error) {
             fprintf(stderr, "First character isnt alphabet\n");
             break;
         case 1:
-            fprintf(stderr, "Size of label is more than 31\n");
+            fprintf(stderr, "Size of label is more than 31\n");//cghanged from 30 to 31
             break;
         case 2:
             fprintf(stderr, "Label contains spaces\n");
