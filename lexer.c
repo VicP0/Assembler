@@ -80,7 +80,7 @@ int isLabel(char *line,int firstWordInLine) {
     }
 
     if(strlen(line) > 31){
-        errors(3);//changed from 2 to 3
+        errors(1);//changed from 2 to 1
         free(firstWord);
         return 0;
     }
