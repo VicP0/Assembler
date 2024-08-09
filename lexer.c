@@ -202,24 +202,3 @@ int validNumber(char *num){
     }
     return 1;
 }
-
-int is_label(char *string) {
-    int i;
-
-    if (strlen(string) == 0) return 0;
-    if (!isalpha(string[0])) return 0;
-
-    for (i = 1; string[i] != '\0'; i++) {
-        if (!isalpha(string[i]) && !isdigit(string[i])) return 0;
-    }
-    return 1;
-}
-
-int is_register(char *string) {
-    int i;
-    for (i = 0; i < NUM_REGISTERS; i++) {
-        /* returning the register index */
-        if (strcmp(REGISTERS_NAMES[i], string) == 0) return i;
-    }
-    return -1;
-}
