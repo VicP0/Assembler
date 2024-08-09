@@ -29,7 +29,7 @@ int immediateAddressing(char *word) {
     while (isspace(word[index])) index++;
     return index;
 }
-
+//added from here
 int bypassAdressing(char *word) {
     int index = 1;
     if(word[0] != '*')
@@ -48,7 +48,7 @@ int bypassAdressing(char *word) {
     while (isspace(word[index])) index++;
     return index;
 }
-
+//to here
 void getArgument(char *line, char *target, int index) {
     int wordSize = 0;
     int copyFromMem = index;
