@@ -20,8 +20,12 @@ void encode_data_command(FILE *writeFile, char *line, int isData, int lineNum, c
 
 /* getting command code from specific substring */
 int command_code(char *command);
-
+/* returning index of register if substring is a register, -1 otherwise */
+int is_register(char *string);
+/* following label names guidelines and rules, and returning 1 whether it is, 0 otherwise */
+int is_label(char *string);
 /* converting a number to the special binary base defined and setting the string in finalString parameter */
+
 void convert_to_special_binary(int num, char finalString[]);
 /* writing the special binary representation of parameter num and writing the line number to its' left */
 void write_to_ob_file(int num, char finalString[], int lineNum, FILE *file);//
