@@ -58,10 +58,10 @@ void errors(int error) {
             fprintf(stderr,"Undefined label\n");
             break;
         case 18:
-            fprintf(stderr,"Missing )\n");
+            fprintf(stderr,"Missing )\n");///no relevant for us 
             break;
         case 19:
-            fprintf(stderr,"Missing (\n");
+            fprintf(stderr,"Missing (\n");//not relevant for us 
             break;
         case 20:
             fprintf(stderr,"Missing paramter\n");
