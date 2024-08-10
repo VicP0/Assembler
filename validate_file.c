@@ -50,7 +50,7 @@ int validLine(char *line){
     if(line[i] == ':'){
         temp = (char*)malloc(sizeof(char*) * i + 1);
         if(temp == NULL){
-            errors(23);
+            errors(22);
             return 0;
         }
         copyWord(&line[copyFromHere],temp,i - copyFromHere + 1);
@@ -69,7 +69,7 @@ int validLine(char *line){
     copyLine = (char*)malloc(sizeof(char*) * strlen(line));
 
     if(copyLine == NULL){
-        errors(23);
+        errors(22);
         return 0;
     }
     copyWord(&line[i],copyLine,strlen(line));
@@ -94,7 +94,7 @@ int validLine(char *line){
         token = strtok(NULL, delimiter);
     }
     /* TODO: error if token was invalid */
-    errors(21);
+    errors(20);
     free(copyLine);
     return 0;
 }
@@ -125,7 +125,7 @@ int sendToInstruction(char *line, int instruction, int copyFrom){
     while(isspace(line[index])) index++;
 
     if(line[index] == '\0'){
-        errors(20);
+        errors(19);
         return 0;
     }
 
