@@ -1,7 +1,7 @@
 #include "input_validation.h"
 #include "constants.h"
 
-#define MAX_LINE_SIZE 81
+#define MAX_LINE_SIZE 80
 
 /* function to check if an entire assembly file has valid syntax */
 int validFile(char *fileToOpen);
