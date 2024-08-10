@@ -58,22 +58,22 @@ void errors(int error) {
             fprintf(stderr,"Undefined label\n");
             break;
         case 18:
-            fprintf(stderr,"Missing )\n");///no relevant for us 
+            fprintf(stderr,"Missing *\n"); //changed
             break;
+       /* case 19:
+            fprintf(stderr,"Missing (\n");//not relevant for us     
+            break; */
         case 19:
-            fprintf(stderr,"Missing (\n");//not relevant for us 
+            fprintf(stderr,"Missing paramter\n"); // changed from 20
             break;
         case 20:
-            fprintf(stderr,"Missing paramter\n");
+            fprintf(stderr,"Unexpected text\n"); // changed from 21 
             break;
         case 21:
-            fprintf(stderr,"Unexpected text\n");
+            fprintf(stderr,"Invalid label for instruction\n"); // changed from 22 
             break;
         case 22:
-            fprintf(stderr,"Invalid label for instruction\n");
-            break;
-        case 23:
-            fprintf(stderr,"Could'nt allocate memory\n");
+            fprintf(stderr,"Could'nt allocate memory\n"); // changed from 23
             break;
     }
 }
