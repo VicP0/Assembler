@@ -75,7 +75,7 @@ int isLabel(char *line,int firstWordInLine) {
 
     firstWord = (char*)malloc(sizeof (char*) * strlen(line));
     if(firstWord == NULL){
-        errors(23);
+        errors(22);
         return 0;
     }
 
@@ -173,7 +173,7 @@ int isRegister(char *line) {
     reg = (char*)malloc(sizeof(char*) * wordSize);
 
     if(reg == NULL){
-        errors(23);
+        errors(22);
         return 0;
     }
     copyWord(line,reg,wordSize);
