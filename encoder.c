@@ -887,7 +887,7 @@ void encode_data_command(FILE *writeFile, char *line, int isData, int lineNum, c
     (*DC)++;
 }
 
-void convert_to_special_binary(int num, char finalString[]) {
+/*void convert_to_special_binary(int num, char finalString[]) {
     int i;
     short mask = 1 << (NUM_BITS-1);
 
@@ -897,6 +897,29 @@ void convert_to_special_binary(int num, char finalString[]) {
         mask = mask >> 1;
     }
     finalString[NUM_BITS] = '\0';
+} */ changed
+void convert_to_special_binary(int num, char finalString[]) {
+    int i = 0, j = 0;
+    int octal_digit;
+
+    while (i < NUM_BITS) {
+        octal_digit = 0;
+
+        if (i < NUM_BITS && (num & (1 << (NUM_BITS - 1 - i)))) {
+            octal_digit += 4;
+        }
+        i++;
+        if (i < NUM_BITS && (num & (1 << (NUM_BITS - 1 - i)))) {
+            octal_digit += 2;  // Middle bit in the group
+        }
+        i++;
+        if (i < NUM_BITS && (num & (1 << (NUM_BITS - 1 - i)))) {
+            octal_digit += 1;  // Least significant bit in the group
+        }
+        i++;
+        finalString[j++] = octal_digit + '0';
+    }
+    finalString[j] = '\0';
 }
 
 void write_to_ob_file(int num, char finalString[], int lineNum, FILE *file) {
