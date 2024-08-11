@@ -219,7 +219,7 @@ int secondGroupOps(char *line, int operation) {
     }
     /* skip the ) */
    // if(line[i] == ')') not relevant
-        i++;
+    //    i++;
     while(isspace(line[i]) && line[i] != '\0') i++;
     if(!terminatedCorrectly(line, i)) {
         /* TODO: error */
