@@ -138,7 +138,7 @@ int change_value(hashTable *table, char *key, char *value) {
     /* if value's length is longer than item's length */
     if (valueLength > itemValueLength) {
         current->value = (char *) realloc(current->value,
-                                                   valueLength);
+                                          valueLength);
         if (current->value == NULL) {
             fprintf(stderr, MEMORY_NOT_ALLOCATED_SUCCESSFULLY_ERROR_MESSAGE);
             return MEMORY_NOT_ALLOCATED_ERROR_CODE;
@@ -150,7 +150,7 @@ int change_value(hashTable *table, char *key, char *value) {
         memset(current->value, 0, itemValueLength);
     } else if (valueLength > 0) {
         current->value = (char *) realloc(current->value,
-                                         valueLength);
+                                          valueLength);
         if (current->value == NULL) {
             fprintf(stderr, MEMORY_NOT_ALLOCATED_SUCCESSFULLY_ERROR_MESSAGE);
             return MEMORY_NOT_ALLOCATED_ERROR_CODE;
