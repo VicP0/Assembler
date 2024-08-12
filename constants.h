@@ -1,3 +1,4 @@
+#pragma once
 
 #define MEMORY_NOT_ALLOCATED_ERROR_CODE 0
 #define HASH_TABLE_INSERT_CONTAINS_KEY_ERROR_CODE 0
@@ -50,18 +51,33 @@
 #define SHIFTS_FOR_DEST 3 //changed
 #define SHIFTS_FOR_SRC 7 // changed
 #define SHIFTS_FOR_OPCODE 11 //changed
-#define SHIFTS_FOR_SRC_REGISTER 7//changed
-#define SHIFTS_FOR_DEST_REGISTER 3//changed
+#define SHIFTS_FOR_SRC_REGISTER 10//changed
+#define SHIFTS_FOR_SRC_REGISTER_ADDRESS 9//changed
+#define SHIFTS_FOR_SRC_LABEL 8 //changed
+#define SHIFTS_FOR_SRC_DIRECT 7 // changed
+#define SHIFTS_FOR_DEST_REGISTER 6//changed
+#define SHIFTS_FOR_DEST_REGISTER_ADDRESS 5//changed
+#define SHIFTS_FOR_DEST_LABEL 4 //changed
+#define SHIFTS_FOR_DEST_DIRECT 3 // changed
+#define SHIFTS_FOR_FIRST_PARAM_REGISTER 6
+#define SHIFTS_FOR_SECOND_PARAM_REGISTER 3
+
+#define SHIFTS_FOR_SECOND_PARAM 10
+#define SHIFTS_FOR_FIRST_PARAM 12
 
 #define IMMEDIATE_ENCODE 0
 #define DIRECT_ENCODE 1
 #define BYPASS_ENCODE 2 //changed
 #define REGISTER_ENCODE 3
 
+
+#define BIT 1
+
+
 /* E,R,A operands */
-#define E 0//changed
-#define R 1//changed
-#define A 2//change
+#define E 1//changed
+#define R 2//changed
+#define A 4//change
 
 
 
