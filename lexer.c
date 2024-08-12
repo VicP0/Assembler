@@ -1,5 +1,6 @@
-#include "functions.h"
+#include "lexer.h"
 char *registers[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
+char *registersAddress[] = {"r0", "*r1", "*r2", "*r3", "*r4", "*r5", "*r6", "*r7"};
 char *operations[] = {"mov", "cmp", "add", "sub", "lea",
                       "clr", "not", "inc", "dec", "jmp", "bne", "red", "prn", "jsr",
                       "rts", "stop"};
@@ -29,26 +30,6 @@ int immediateAddressing(char *word) {
     while (isspace(word[index])) index++;
     return index;
 }
-//added from here
-int bypassAdressing(char *word) {
-    int index = 1;
-    if(word[0] != '*')
-        return 0;
-    if (!isdigit(word[index]) && word[index] != '+' && word[index] != '-' ) {
-        /* TODO: error */
-        errors(10);
-        return 0;
-    }
-    index++; /* skip ahead to the number */
-    while (isdigit(word[index])) index++; /* read the entire number */
-    if(word[index] != '\0' && !isspace(word[index])) {
-        /* TODO: error invalid number */
-        return 0;
-    }
-    while (isspace(word[index])) index++;
-    return index;
-}
-//to here
 void getArgument(char *line, char *target, int index) {
     int wordSize = 0;
     int copyFromMem = index;
@@ -187,6 +168,28 @@ int isRegister(char *line) {
     return 0;
 
 }
+int isRegisterAddress(char *line) {
+    int i;
+    char *reg;
+    int wordSize = strlen(line);
+    reg = (char*)malloc(sizeof(char*) * wordSize);
+
+    if(reg == NULL){
+        errors(22);
+        return 0;
+    }
+    copyWord(line,reg,wordSize);
+    for(i = 0;i < sizeof(registersAddress) / sizeof(char *);i++){
+        if(strcmp(registersAddress[i],reg) == 0) {
+            free(reg);
+            return 1;
+        }
+    }
+    free(reg);
+    return 0;
+
+}
+
 
 int validNumber(char *num){
     int i = 0;
