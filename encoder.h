@@ -22,6 +22,8 @@ void encode_data_command(FILE *writeFile, char *line, int isData, int lineNum, c
 int command_code(char *command);
 /* returning index of register if substring is a register, -1 otherwise */
 int is_register(char *string);
+/* returning index of register address if substring is a register, -1 otherwise */
+int is_register_address(char *string);
 /* following label names guidelines and rules, and returning 1 whether it is, 0 otherwise */
 int is_label(char *string);
 /* converting a number to the special binary base defined and setting the string in finalString parameter */
