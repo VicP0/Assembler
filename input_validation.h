@@ -1,5 +1,5 @@
 #include "constants.h"
-#include "functions.h"
+#include "lexer.h"
 
 enum status {COMMA,NUMBER,DONE};
 
@@ -10,7 +10,9 @@ int groupOneSecondArg(char *word, int operation);
 int firstGroupOps(int operation, char *line);
 
 /* covers cases of registers and labels */
-int validRegisterOrLabel(char *line);
+int validRegister(char *line);
+int validLabel(char *line);
+int validRegisterAddress(char *line);
 
 /* validate not,clr,inc,dec */
 int secondGroupOps(char *line,int operation);
