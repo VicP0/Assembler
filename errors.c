@@ -1,3 +1,4 @@
+
 #include "errors.h"
 
 void errors(int error) {
@@ -60,17 +61,17 @@ void errors(int error) {
         case 18:
             fprintf(stderr,"Missing *\n"); //changed
             break;
-       /* case 19:
-            fprintf(stderr,"Missing (\n");//not relevant for us     
-            break; */
+            /* case 19:
+                 fprintf(stderr,"Missing (\n");//not relevant for us
+                 break; */
         case 19:
             fprintf(stderr,"Missing paramter\n"); // changed from 20
             break;
         case 20:
-            fprintf(stderr,"Unexpected text\n"); // changed from 21 
+            fprintf(stderr,"Unexpected text\n"); // changed from 21
             break;
         case 21:
-            fprintf(stderr,"Invalid label for instruction\n"); // changed from 22 
+            fprintf(stderr,"Invalid label for instruction\n"); // changed from 22
             break;
         case 22:
             fprintf(stderr,"Could'nt allocate memory\n"); // changed from 23
