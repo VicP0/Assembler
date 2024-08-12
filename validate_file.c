@@ -65,7 +65,7 @@ int validLine(char *line){
         } /* invalid label decleration */
     }
     if(!foundLabel)
-        i = 0;
+       i = 0;
     copyLine = (char*)malloc(sizeof(char*) * strlen(line));
 
     if(copyLine == NULL){
@@ -74,8 +74,10 @@ int validLine(char *line){
     }
     copyWord(&line[i],copyLine,strlen(line));
     token = strtok(copyLine, delimiter);
-
-    index = i + 1;
+   // line = strtok(NULL, delimiter);
+    ///////////////changed
+    //if(foundLabel)
+    index = i + strlen(token);//////change so it will point the first space after the operation
     while (token != NULL) {
         for(i = 0;i < sizeof(operationss) / sizeof(char*); i++) {
             if (strcmp(token, operationss[i]) == 0) {
@@ -103,12 +105,12 @@ int sendToOp(char *line,int operation,int copyFrom){
     int index = copyFrom;
     /* skip the operation word */
     while(isspace(line[index]) && line[index] != '\0') index++;
-    while(isalpha(line[index]) && line[index] != '\0') index++;
     /* first group operationss */
-    if((operation <= SUB_CODE && operation >= MOV_CODE) || operation == LEA_CODE)
+    if(operation <= LEA_CODE && operation >= MOV_CODE) {
         return firstGroupOps(operation, &line[index]);
+    }
         /* second group operationss */
-    else if((operation <= JSR_CODE && operation >= CLR_CODE) || operation == NOT_CODE)
+    else if((operation <= JSR_CODE && operation >= CLR_CODE))
         return secondGroupOps(&line[index], operation);
         /* third group operationss */
     else return thirdGroupOps(&line[index]);
