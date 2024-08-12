@@ -18,4 +18,5 @@ void getArgument(char *source,char *target,int index);
 int terminatedCorrectly(char *line,int index);
 int isLabel(char *line,int firstWordInLine);
 int isRegister(char *line);
+int isRegisterAddress(char *line);
 int validNumber(char *num);
