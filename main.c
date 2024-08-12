@@ -145,9 +145,8 @@ int main(int argc, char *argv[]) {
             free(writeFiles);
             break;
         }
-
-        if (!first_scan(postDeployReadFiles[i], preScanFiles[i], labelsTables[i],
-                        &IC, &DC, entriesTables[i], externsTables[i],macrosTables[i])) {/////////////changed macro table was added as input 
+        fflush(stdout);
+        if (!first_scan(postDeployReadFiles[i], preScanFiles[i], labelsTables[i],&IC, &DC, entriesTables[i], externsTables[i],macrosTables[i])) {/////////////changed macro table was added as input
             IC = 100;
             DC = 0;
 
@@ -159,7 +158,7 @@ int main(int argc, char *argv[]) {
 
             continue;
         }
-
+        fflush(stdout);
         fclose(preScanFiles[i]);
 
         if ((finalFiles[i] = fopen(finalFileNames[i], WRITE_MODE)) == NULL) {
@@ -187,7 +186,7 @@ int main(int argc, char *argv[]) {
 
             continue;
         }
-
+        fflush(stdout);
         lastFileIndex++;
         /* remove .am, .temp_ob */
         remove(postDeployFileNames[i]);
