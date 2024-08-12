@@ -2,10 +2,10 @@
 
 const char *REGISTERS_NAMES[] = {
         "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7" };
+const char *REGISTERS_ADDRESS_NAMES[] = {
+        "*r0", "*r1", "*r2", "*r3", "*r4", "*r5", "*r6", "*r7" };
 
-
-int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *DC,
-               hashTableInt *entriesTable, hashTableInt *externsTable, hashTable *macroTable) {/////////changed
+int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *DC,hashTableInt *entriesTable, hashTableInt *externsTable, hashTable *macroTable) {/////////changed
     int i, j, startParamsIdx;
     /* flag whether to encode currentLine of not */
     int encodeLine = 1, continueToSecondScan = 1;
@@ -85,11 +85,11 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
                 /* initializing labelName */
                 strncpy(labelName, &currentLine[j-currentLabelLength], currentLabelLength);
                 labelName[currentLabelLength] = '\0';
-                //////////functionw as added     
+                //////////functionw as added
                 if(contains_key(macroTable,labelName)){
-                       fprintf(stderr, "Label %s already exists in macros!\n", labelName);
-                        continueToSecondScan = 0;
-                        continue; 
+                    fprintf(stderr, "Label %s already exists in macros!\n", labelName);
+                    continueToSecondScan = 0;
+                    continue;
                 }
                 //til here
                 /* handle duplications and handling case where label was declared before ".entry labelName" command */
@@ -146,14 +146,14 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
                 strncpy(labelName, &currentLine[j-currentLabelLength], currentLabelLength);
                 labelName[currentLabelLength] = '\0';
 
-                     //////////functionw as added     
+                //////////functionw as added
                 if(contains_key(macroTable,labelName)){
-                       fprintf(stderr, "Label %s already exists in macros!\n", labelName);
-                        continueToSecondScan = 0;
-                        continue; 
+                    fprintf(stderr, "Label %s already exists in macros!\n", labelName);
+                    continueToSecondScan = 0;
+                    continue;
                 }
                 //til here
-                    
+
                 /* handle duplications */
                 if (contains_key_int(externsTable, labelName)) {
                     fprintf(stderr, "%s: %s", labelName, LABEL_DECLARED_EXTERN_ERROR_MESSAGE);
@@ -247,15 +247,15 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
         /* initializing labelName */
         strncpy(labelName, &currentLine[i-currentLabelLength], currentLabelLength);
         labelName[currentLabelLength] = '\0';
-            
-           //////////functionw as added     
-         if(contains_key(macroTable,labelName)){
-                   fprintf(stderr, "Label %s already exists in macros!\n", labelName);
-                   continueToSecondScan = 0;
-                   continue; 
+
+        //////////functionw as added
+        if(contains_key(macroTable,labelName)){
+            fprintf(stderr, "Label %s already exists in macros!\n", labelName);
+            continueToSecondScan = 0;
+            continue;
         }
-                //til here
-            
+        //til here
+
         /* skipping colon and space */
         i += 2;
 
@@ -507,6 +507,7 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
     int j, i;
     char *token = NULL;
     int firstRegisterIdx = -1, secondRegisterIdx = -1;
+    int firstRegisterAddressIdx = -1, secondRegisterAddressIdx = -1;//
     char labelBeforeParams[MAX_WORD_LENGTH];
     char copyLine[MAX_WORD_LENGTH];
     int isEncodedFirst = 0, isEncodedSecond = 0;
@@ -514,7 +515,7 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
     firstParamEncode = secondParamEncode = encodedWord = 0;
     thirdEncode = -1;
 
-    operationEncode = operationEncode << SHIFTS_FOR_OPCODE;
+    operationEncode = (operationEncode << SHIFTS_FOR_OPCODE) | A;
     for (j = 0; j < MAX_WORD_LENGTH; j++) labelBeforeParams[j] = '\0';
     j = 0;
 
@@ -523,139 +524,224 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
         case CMP_CODE:
         case ADD_CODE:
         case SUB_CODE: {
-            token = strtok(line, " \t\n,#");
+            token = strtok(line, " \t\n,#*");/////////////////////////////////////////// think
             while (token != NULL) {
                 if (!isEncodedFirst) {
                     if ((firstRegisterIdx = is_register(token)) != -1) {
-                        operationEncode = operationEncode | (REGISTER_ENCODE << SHIFTS_FOR_SRC);
-                        /* in first_scan setting labels encoding as the labels names in .ob file (encode them in 2nd scan) */
-                    } else if (is_label(token)) {
-                        operationEncode = operationEncode | (DIRECT_ENCODE << SHIFTS_FOR_SRC);
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_SRC_REGISTER);
+                        //operationEncode = operationEncode | (REGISTER_ENCODE << SHIFTS_FOR_SRC);
+                    }
+                    //this if was added
+                    else if ((firstRegisterAddressIdx = is_register_address(token)) != -1) {
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_SRC_REGISTER_ADDRESS);
+                    }
+                    //* in first_scan setting labels encoding as the labels names in .ob file (encode them in 2nd scan) */
+                     else if (is_label(token)) {
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_SRC_LABEL);
                         strcpy(labelBeforeParams, token);
                         /*fprintf(writeFile, "%d\t%s\n", lineNum, token);*/
                     }
                         /* it's a number */
                     else {
-                        operationEncode = operationEncode | (IMMEDIATE_ENCODE << SHIFTS_FOR_SRC);
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_SRC_DIRECT);
                         firstParamEncode = (short) atoi(token);
-                        firstParamEncode = firstParamEncode << SHIFTS_FOR_DEST;
-                        /*write_to_ob_file(firstParamEncode, encodedString, lineNum, writeFile);*/
+                        firstParamEncode = ((firstParamEncode << SHIFTS_FOR_DEST) | A);
+                        ///*write_to_ob_file(firstParamEncode, encodedString, lineNum, writeFile);*/
                     }
                     isEncodedFirst = 1;
                 } else if (!isEncodedSecond) {
                     if ((secondRegisterIdx = is_register(token)) != -1) {
-                        operationEncode = operationEncode | (REGISTER_ENCODE << SHIFTS_FOR_DEST);
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_REGISTER);
                         /* encode first word */
                         write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
                         /* need to encode both registers in one word */
                         if (firstRegisterIdx != -1) {
-                            write_to_ob_file((firstRegisterIdx << SHIFTS_FOR_SRC_REGISTER) |
-                                             (secondRegisterIdx << SHIFTS_FOR_DEST_REGISTER),
+                            write_to_ob_file((firstRegisterIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER) |
+                                             (secondRegisterIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A,
                                              encodedString, lineNum, writeFile);
                             firstRegisterIdx = -1;
+                        } else if (firstRegisterAddressIdx != -1) {
+                            write_to_ob_file((firstRegisterAddressIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER) |
+                                             (secondRegisterIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A,
+                                             encodedString, lineNum, writeFile);
+                            firstRegisterAddressIdx = -1;
                         } else {
                             /* encode 2 separate words */
                             /* source operand was a label */
                             if (labelBeforeParams[0] != '\0') {
                                 fprintf(writeFile, "%d\t%s\n", lineNum, labelBeforeParams);
                                 /* source operand was a number */
-                            } else write_to_ob_file(firstParamEncode << SHIFTS_FOR_DEST, encodedString,
-                                                    lineNum, writeFile);
+                            } //else write_to_ob_file(firstParamEncode << SHIFTS_FOR_DEST, encodedString, lineNum, writeFile);
+                            else write_to_ob_file(firstParamEncode, encodedString, lineNum, writeFile);//was added
                             /* encode destination operand which was a register */
-                            write_to_ob_file(secondRegisterIdx << SHIFTS_FOR_DEST_REGISTER, encodedString,
+                            write_to_ob_file((secondRegisterIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A, encodedString,
                                              lineNum, writeFile);
                         }
                         /* in first_scan setting labels' names in .temp_ob file (encode them in 2nd scan) */
+
+                    }else if((secondRegisterAddressIdx = is_register_address(token)) != -1) {
+                            operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_REGISTER_ADDRESS);
+                            /* encode first word */
+                            write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
+                            /* need to encode both registers in one word */
+                            if (firstRegisterIdx != -1) {
+                                write_to_ob_file((firstRegisterIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER) |
+                                                 (secondRegisterAddressIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A,
+                                                 encodedString, lineNum, writeFile);
+                                firstRegisterIdx = -1;
+                            }
+                            else if (firstRegisterAddressIdx != -1){
+                                write_to_ob_file((firstRegisterAddressIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER) |
+                                                 (secondRegisterAddressIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A,
+                                                 encodedString, lineNum, writeFile);
+                                firstRegisterAddressIdx = -1;
+                            }
+                            else {
+                                /* encode 2 separate words */
+                                /* source operand was a label */
+                                if (labelBeforeParams[0] != '\0') {
+                                    fprintf(writeFile, "%d\t%s\n", lineNum, labelBeforeParams);
+                                    /* source operand was a number */
+                                } //else write_to_ob_file(firstParamEncode << SHIFTS_FOR_DEST, encodedString, lineNum, writeFile);
+                                else write_to_ob_file(firstParamEncode, encodedString, lineNum, writeFile);//was added
+                                /* encode destination operand which was a register */
+                                write_to_ob_file((secondRegisterIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER)|A, encodedString,lineNum, writeFile);
+                            }
+                            /* in first_scan setting labels' names in .temp_ob file (encode them in 2nd scan) */
+
                     } else if (is_label(token)) {
-                        operationEncode = operationEncode | (DIRECT_ENCODE << SHIFTS_FOR_DEST);
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_LABEL);
                         /* encode first word */
                         write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
                         /* source operand was a register */
-                        if (firstRegisterIdx != -1) write_to_ob_file(firstRegisterIdx << SHIFTS_FOR_SRC_REGISTER, encodedString, lineNum, writeFile);
+                        if (firstRegisterIdx != -1) write_to_ob_file((firstRegisterIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER)|A, encodedString, lineNum, writeFile);
                             /* source operand was a label */
+                        else if (firstRegisterAddressIdx != -1) write_to_ob_file((firstRegisterAddressIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER)|A, encodedString, lineNum, writeFile);
                         else if (labelBeforeParams[0] != '\0') {
                             fprintf(writeFile, "%d\t%s\n", lineNum, labelBeforeParams);
                             /* source operand was a number */
-                        } else write_to_ob_file(firstParamEncode << SHIFTS_FOR_DEST, encodedString,
-                                                lineNum, writeFile);
+                        } else write_to_ob_file(firstParamEncode , encodedString, lineNum, writeFile);//
                         fprintf(writeFile, "%d\t%s\n", lineNum, token);
                     }
                         /* it's a number (ONLY for cmp) */
                     else if (operationEncode >> SHIFTS_FOR_OPCODE == CMP_CODE) {
-                        operationEncode = operationEncode | (IMMEDIATE_ENCODE << SHIFTS_FOR_DEST);
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_DIRECT);
                         write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
                         secondParamEncode = (short) atoi(token);
-                        secondParamEncode = secondParamEncode << SHIFTS_FOR_DEST;
+                        secondParamEncode = (secondParamEncode << SHIFTS_FOR_DEST) | A;
                         /* source operand was a register */
                         if (firstRegisterIdx != -1) {
-                            write_to_ob_file(firstRegisterIdx << SHIFTS_FOR_SRC_REGISTER, encodedString, lineNum, writeFile);
+                            write_to_ob_file((firstRegisterIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER) | A, encodedString,lineNum, writeFile);
                             /* source operand was a label */
-                        } else if (labelBeforeParams[0] != '\0') {
+                        }else if (firstRegisterAddressIdx != -1) write_to_ob_file((firstRegisterAddressIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER)|A, encodedString, lineNum, writeFile);
+                         else if (labelBeforeParams[0] != '\0') {
                             fprintf(writeFile, "%d\t%s\n", lineNum, labelBeforeParams);
                             /* source operand was a number */
-                        } else write_to_ob_file(firstParamEncode << SHIFTS_FOR_DEST, encodedString,
-                                                lineNum, writeFile);
+                        } else write_to_ob_file(firstParamEncode, encodedString,lineNum, writeFile);
                         write_to_ob_file(secondParamEncode, encodedString, lineNum, writeFile);
                         secondParamEncode = 0;
                     }
                     isEncodedSecond = 1;
                     firstRegisterIdx = secondRegisterIdx = -1;
-                    firstParamEncode = 0;
+                    firstRegisterAddressIdx = secondRegisterAddressIdx = -1;
+
                 }
-                token = strtok(NULL, " \t\n,#");
+                token = strtok(NULL, " \t\n,*");
             }
+            isEncodedFirst = isEncodedSecond = 0;
             break;
         }
 
             /* same thing but no immediate addressing */
         case LEA_CODE: {
-            token = strtok(line, " \t\n,");
+            token = strtok(line, " \t\n,*");
             while (token != NULL) {
                 if (!isEncodedFirst) {
-                    if ((firstRegisterIdx = is_register(token)) != -1) {
-                        operationEncode = operationEncode | (REGISTER_ENCODE << SHIFTS_FOR_SRC);
-                        /* in first_scan setting labels as ? in .ob file (encode them in 2nd scan) */
-                    } else if (is_label(token)) {
-                        operationEncode = operationEncode | (DIRECT_ENCODE << SHIFTS_FOR_SRC);
+                    if (is_label(token)) {
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_SRC_LABEL);
                         strcpy(labelBeforeParams, token);
                         /*fprintf(writeFile, "%d\t%s\n", lineNum, token);*/
                     }
                     isEncodedFirst = 1;
                 } else if (!isEncodedSecond) {
                     if ((secondRegisterIdx = is_register(token)) != -1) {
-                        operationEncode = operationEncode | (REGISTER_ENCODE << SHIFTS_FOR_DEST);
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_REGISTER);
+                        /* encode first word */
                         write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
-
-                        /* encode both registers in a single word */
+                        /* need to encode both registers in one word */
                         if (firstRegisterIdx != -1) {
-                            write_to_ob_file((firstRegisterIdx << SHIFTS_FOR_SRC_REGISTER) |
-                                             (secondRegisterIdx << SHIFTS_FOR_DEST_REGISTER),
+                            write_to_ob_file((firstRegisterIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER) |
+                                             (secondRegisterIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A,
                                              encodedString, lineNum, writeFile);
                             firstRegisterIdx = -1;
+                        } else if (firstRegisterAddressIdx != -1) {
+                            write_to_ob_file((firstRegisterAddressIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER) |
+                                             (secondRegisterIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A,
+                                             encodedString, lineNum, writeFile);
+                            firstRegisterAddressIdx = -1;
                         } else {
+                            /* encode 2 separate words */
                             /* source operand was a label */
                             if (labelBeforeParams[0] != '\0') {
                                 fprintf(writeFile, "%d\t%s\n", lineNum, labelBeforeParams);
-                            }
-                            write_to_ob_file(secondRegisterIdx << SHIFTS_FOR_DEST_REGISTER, encodedString,
+                                /* source operand was a number */
+                            } //else write_to_ob_file(firstParamEncode << SHIFTS_FOR_DEST, encodedString, lineNum, writeFile);
+                            else write_to_ob_file(firstParamEncode, encodedString, lineNum, writeFile);//was added
+                            /* encode destination operand which was a register */
+                            write_to_ob_file((secondRegisterIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A, encodedString,
                                              lineNum, writeFile);
                         }
-                        /* in first_scan setting labels as ? in .ob file (encode them in 2nd scan) */
+                        /* in first_scan setting labels' names in .temp_ob file (encode them in 2nd scan) */
+
+                    }else if((secondRegisterAddressIdx = is_register_address(token)) != -1) {
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_REGISTER_ADDRESS);
+                        /* encode first word */
+                        write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
+                        /* need to encode both registers in one word */
+                        if (firstRegisterIdx != -1) {
+                            write_to_ob_file((firstRegisterIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER) |
+                                             (secondRegisterAddressIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A,
+                                             encodedString, lineNum, writeFile);
+                            firstRegisterIdx = -1;
+                        }
+                        else if (firstRegisterAddressIdx != -1){
+                            write_to_ob_file((firstRegisterAddressIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER) |
+                                             (secondRegisterAddressIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A,
+                                             encodedString, lineNum, writeFile);
+                            firstRegisterAddressIdx = -1;
+                        }
+                        else {
+                            /* encode 2 separate words */
+                            /* source operand was a label */
+                            if (labelBeforeParams[0] != '\0') {
+                                fprintf(writeFile, "%d\t%s\n", lineNum, labelBeforeParams);
+                                /* source operand was a number */
+                            } //else write_to_ob_file(firstParamEncode << SHIFTS_FOR_DEST, encodedString, lineNum, writeFile);
+                            else write_to_ob_file(firstParamEncode, encodedString, lineNum, writeFile);//was added
+                            /* encode destination operand which was a register */
+                            write_to_ob_file((secondRegisterIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER)|A, encodedString,lineNum, writeFile);
+                        }
+                        /* in first_scan setting labels' names in .temp_ob file (encode them in 2nd scan) */
+
                     } else if (is_label(token)) {
-                        operationEncode = operationEncode | (DIRECT_ENCODE << SHIFTS_FOR_DEST);
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_LABEL);
+                        /* encode first word */
                         write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
                         /* source operand was a register */
-                        if (firstRegisterIdx != -1) write_to_ob_file(firstRegisterIdx << SHIFTS_FOR_DEST_REGISTER, encodedString, lineNum, writeFile);
+                        if (firstRegisterIdx != -1) write_to_ob_file((firstRegisterIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER)|A, encodedString, lineNum, writeFile);
                             /* source operand was a label */
+                        else if (firstRegisterAddressIdx != -1) write_to_ob_file((firstRegisterAddressIdx << SHIFTS_FOR_FIRST_PARAM_REGISTER)|A, encodedString, lineNum, writeFile);
                         else if (labelBeforeParams[0] != '\0') {
                             fprintf(writeFile, "%d\t%s\n", lineNum, labelBeforeParams);
-                        }
+                            /* source operand was a number */
+                        } else write_to_ob_file(firstParamEncode , encodedString, lineNum, writeFile);//
                         fprintf(writeFile, "%d\t%s\n", lineNum, token);
                     }
                     isEncodedSecond = 1;
                     firstRegisterIdx = secondRegisterIdx = -1;
+                    firstRegisterAddressIdx = secondRegisterAddressIdx = -1;
                 }
-                token = strtok(NULL, " \t\n,");
+                token = strtok(NULL, " \t\n,*");
             }
             isEncodedFirst = isEncodedSecond = 0;
             break;
@@ -663,44 +749,52 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
 
             /* only destination operand instructions (no jmp, bne, jsr) can be registers or label only */
         case CLR_CODE:
-        case NOT_CODE: //changed the oreder
+        case NOT_CODE:
         case INC_CODE:
         case DEC_CODE:
         case RED_CODE:
         case PRN_CODE: {
-            token = strtok(line, " \t\n#");
+            token = strtok(line, " \t\n#*");
             while (token != NULL) {
                 if (!isEncodedFirst) {
                     if ((secondRegisterIdx = is_register(token)) != -1) {
-                        operationEncode = operationEncode | (REGISTER_ENCODE << SHIFTS_FOR_DEST);
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_REGISTER);
                         write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
-
-                        secondRegisterIdx = secondRegisterIdx << SHIFTS_FOR_DEST_REGISTER;
+                        secondRegisterIdx = (secondRegisterIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A;
                         write_to_ob_file(secondRegisterIdx, encodedString, lineNum, writeFile);
                         secondRegisterIdx = -1;
                         /* in first_scan setting labels as ? in .ob file (encode them in 2nd scan) */
+                    }else if((secondRegisterAddressIdx = is_register_address(token)) != -1){
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_REGISTER_ADDRESS);
+                        write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
+                        secondRegisterAddressIdx = (secondRegisterAddressIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A;
+                        write_to_ob_file(secondRegisterAddressIdx, encodedString, lineNum, writeFile);
+                        secondRegisterAddressIdx = -1;
                     } else if (is_label(token)) {
-                        operationEncode = operationEncode | (DIRECT_ENCODE << SHIFTS_FOR_DEST);
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_LABEL);
                         write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
                         fprintf(writeFile, "%d\t%s\n", lineNum, token);
                     }
                     else {
                         /* checking immediate addressing (ONLY for prn) */
                         if (operationEncode >> SHIFTS_FOR_OPCODE == PRN_CODE) {
-                            operationEncode = operationEncode | (IMMEDIATE_ENCODE << SHIFTS_FOR_DEST);
+                            operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_DIRECT);
                             write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
                             /* check immediate addressing */
                             secondParamEncode = (short) atoi(token);
-                            secondParamEncode = secondParamEncode << SHIFTS_FOR_DEST;
+                            secondParamEncode = (secondParamEncode << SHIFTS_FOR_DEST )|A;
                             write_to_ob_file(secondParamEncode, encodedString, lineNum, writeFile);
                             secondParamEncode = 0;
                         }
                     }
                     isEncodedFirst = 1;
+                    secondRegisterIdx = -1;
+                    secondRegisterAddressIdx = -1;
                 }
-                token = strtok(NULL, " \t\n#");
+                token = strtok(NULL, " \t\n#*");
             }
             isEncodedFirst = isEncodedSecond = 0;
+
             break;
         }
 
@@ -708,138 +802,27 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
         case JMP_CODE:
         case BNE_CODE:
         case JSR_CODE: {
-            /* handle one operand cases */
-            if (!strstr(line, "*")) {
-                token = strtok(line, " \t\n");
-                while (token != NULL) {
-                    if (!isEncodedFirst) {
-                        if ((secondRegisterIdx = is_register(token)) != -1) {
-                            operationEncode = operationEncode | (REGISTER_ENCODE << SHIFTS_FOR_DEST);
-                            write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
-
-                            secondRegisterIdx = secondRegisterIdx << SHIFTS_FOR_DEST_REGISTER;
-                            write_to_ob_file(secondRegisterIdx, encodedString, lineNum, writeFile);
-                            secondRegisterIdx = -1;
-                            /* in first_scan setting labels as lines in .ob file (encode them in 2nd scan) */
-                        } else if (is_label(token)) {
-                            operationEncode = operationEncode | (DIRECT_ENCODE << SHIFTS_FOR_DEST);
-                            write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
-                            fprintf(writeFile, "%d\t%s\n", lineNum, token);
-                        }
-                        isEncodedFirst = 1;
-                    }
-                    token = strtok(NULL, " \t\n");
-                }
-                isEncodedFirst = isEncodedSecond = 0;
-                break;
-            }
-            /* handle two parameters and destination operand */
-            strcpy(copyLine, line);
-            /* finding label/register as destination operand */
-            for (j = 0; line[j] != '*'; j++) {
-                labelBeforeParams[j] = line[j];
-            }
-            labelBeforeParams[j] = '\0';
-            thirdEncode = -1;
-
-            /* all jmp/bne/jsr commands are encoded with bypass encoded words in dest operand */
-            encodedWord = operationEncode | (BYPASS_ENCODE << SHIFTS_FOR_DEST); // changed
-
-            if ((secondRegisterIdx = is_register(labelBeforeParams)) != -1) {
-                secondRegisterIdx = secondRegisterIdx << SHIFTS_FOR_DEST_REGISTER;
-                thirdEncode = secondRegisterIdx;
-                secondRegisterIdx = -1;
-            } /* if not it's a label and thirdEncode = -1 */
-
-            /* handle parameters' encoding */
-            token = strtok(&line[j], " \t,*#");
+            token = strtok(line, " \t\n*");
             while (token != NULL) {
                 if (!isEncodedFirst) {
-                    /* encoding parameters in word */
-                    if ((firstRegisterIdx = is_register(token)) != -1) {
-                        encodedWord = encodedWord | (REGISTER_ENCODE << SHIFTS_FOR_FIRST_PARAM);
+                    if((secondRegisterAddressIdx = is_register_address(token)) != -1){
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_REGISTER_ADDRESS);
+                        write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
+                        secondRegisterAddressIdx = (secondRegisterAddressIdx << SHIFTS_FOR_SECOND_PARAM_REGISTER) | A;
+                        write_to_ob_file(secondRegisterAddressIdx, encodedString, lineNum, writeFile);
+                        secondRegisterAddressIdx = -1;
                     } else if (is_label(token)) {
-                        encodedWord = encodedWord | (DIRECT_ENCODE << SHIFTS_FOR_FIRST_PARAM);
-                    } else encodedWord = encodedWord | (IMMEDIATE_ENCODE << SHIFTS_FOR_FIRST_PARAM);
-                    isEncodedFirst = 1;
-                } else if (!isEncodedSecond) {
-                    /* encoding parameters in word */
-                    if ((secondRegisterIdx = is_register(token)) != -1) {
-                        encodedWord = encodedWord | (REGISTER_ENCODE << SHIFTS_FOR_SECOND_PARAM);
-                    } else if (is_label(token)) {
-                        encodedWord = encodedWord | (DIRECT_ENCODE << SHIFTS_FOR_SECOND_PARAM);
-                    } else encodedWord = encodedWord | (IMMEDIATE_ENCODE << SHIFTS_FOR_SECOND_PARAM);
-                    isEncodedSecond = 1;
-                    firstRegisterIdx = secondRegisterIdx = -1;
-                }
-                token = strtok(NULL, " \t,*#");
-            }
-            /* reset encoding for the parameters themselves */
-            isEncodedFirst = isEncodedSecond = 0;
-
-            /* encode first word */
-            write_to_ob_file(encodedWord, encodedString, lineNum, writeFile); /* first word */
-
-            /* if label before params was a register */
-            if (thirdEncode != -1) {
-                write_to_ob_file(thirdEncode, encodedString, lineNum, writeFile);
-                thirdEncode = -1;
-            } else {
-                fprintf(writeFile, "%d\t%s\n", lineNum, labelBeforeParams); /* label before params was a label */
-            }
-
-            /* done encoded first word (and second as it was register/label) so resetting labelBeforeParams */
-            for (i = 0; i < MAX_WORD_LENGTH; i++) labelBeforeParams[i] = '\0';
-
-            token = strtok(&copyLine[j], " \t,*#");
-            while (token != NULL) {
-                if (!isEncodedFirst) {
-                    if ((firstRegisterIdx = is_register(token)) != -1) {
-                    } else if (is_label(token)) fprintf(writeFile, "%d\t%s\n", lineNum, token);
-                    else {
-                        firstParamEncode = (short) atoi(token);
-                        firstParamEncode = firstParamEncode << SHIFTS_FOR_DEST;
-                        write_to_ob_file(firstParamEncode, encodedString, lineNum, writeFile);
-                    }
-                    isEncodedFirst = 1;
-                } else if (!isEncodedSecond) {
-                    if ((secondRegisterIdx = is_register(token)) != -1) {
-                        /* encode 2 registers in 1 line */
-                        if (firstRegisterIdx != -1) {
-                            thirdEncode = (firstRegisterIdx << SHIFTS_FOR_SRC_REGISTER) |
-                                          (secondRegisterIdx << SHIFTS_FOR_DEST_REGISTER);
-                            write_to_ob_file(thirdEncode, encodedString, lineNum, writeFile);
-                            thirdEncode = -1;
-                            /* encode 2 separate lines */
-                        } else {
-                            /* first parameter was a label */
-                            if (labelBeforeParams[0] != '\0') {
-                                fprintf(writeFile, "%d\t%s\n", lineNum, labelBeforeParams);
-                            }
-                            secondRegisterIdx = secondRegisterIdx << SHIFTS_FOR_DEST_REGISTER;
-                            write_to_ob_file(secondRegisterIdx, encodedString, lineNum, writeFile);
-                        }
-                    } else if (is_label(token)) {
-                        /* if first was a register, need to encode it */
-                        if (firstRegisterIdx != -1) {
-                            firstRegisterIdx = firstRegisterIdx << SHIFTS_FOR_SRC_REGISTER;
-                            write_to_ob_file(firstRegisterIdx, encodedString, lineNum, writeFile);
-                            /* first parameter was a label */
-                        } else if (labelBeforeParams[0] != '\0') {
-                            fprintf(writeFile, "%d\t%s\n", lineNum, labelBeforeParams);
-                        }
-                        /* encode the label */
+                        operationEncode = operationEncode | (BIT << SHIFTS_FOR_DEST_LABEL);
+                        write_to_ob_file(operationEncode, encodedString, lineNum, writeFile);
                         fprintf(writeFile, "%d\t%s\n", lineNum, token);
-                    } else {
-                        secondParamEncode = (short) atoi(token);
-                        secondParamEncode = secondParamEncode << SHIFTS_FOR_DEST;
-                        write_to_ob_file(secondParamEncode, encodedString, lineNum, writeFile);
                     }
-                    isEncodedSecond = 1;
-                    firstRegisterIdx = secondRegisterIdx = -1;
+                    isEncodedFirst = 1;
+                    secondRegisterIdx = -1;
+                    secondRegisterAddressIdx = -1;
                 }
-                token = strtok(NULL, " \t,*#");
+                token = strtok(line, " \t\n*");
             }
+            isEncodedFirst = isEncodedSecond = 0;
             break;
         }
 
@@ -887,17 +870,6 @@ void encode_data_command(FILE *writeFile, char *line, int isData, int lineNum, c
     (*DC)++;
 }
 
-/*void convert_to_special_binary(int num, char finalString[]) {
-    int i;
-    short mask = 1 << (NUM_BITS-1);
-
-    for (i = 0; i < NUM_BITS; i++) {
-        if (num & mask) finalString[i] = '/';
-        else finalString[i] = '.';
-        mask = mask >> 1;
-    }
-    finalString[NUM_BITS] = '\0';
-} */ changed
 void convert_to_special_binary(int num, char finalString[]) {
     int i = 0, j = 0;
     int octal_digit;
@@ -949,7 +921,7 @@ int command_code(char *command) {
     if (strcmp(commandSubstring, "cmp") == 0) commandCode = CMP_CODE;
     if (strcmp(commandSubstring, "add") == 0) commandCode = ADD_CODE;
     if (strcmp(commandSubstring, "sub") == 0) commandCode = SUB_CODE;
-    if (strcmp(commandSubstring, "lea") == 0) commandCode = LEA_CODE; // changed the oreder with not *opption to take it out to lexer 
+    if (strcmp(commandSubstring, "lea") == 0) commandCode = LEA_CODE; // changed the oreder with not *opption to take it out to lexer
     if (strcmp(commandSubstring, "clr") == 0) commandCode = CLR_CODE;
     if (strcmp(commandSubstring, "not") == 0) commandCode = NOT_CODE;
     if (strcmp(commandSubstring, "inc") == 0) commandCode = INC_CODE;
@@ -983,6 +955,15 @@ int is_register(char *string) {
     for (i = 0; i < NUM_REGISTERS; i++) {
         /* returning the register index */
         if (strcmp(REGISTERS_NAMES[i], string) == 0) return i;
+    }
+    return -1;
+}
+
+int is_register_address(char *string) {
+    int i;
+    for (i = 0; i < NUM_REGISTERS; i++) {
+        /* returning the register address index */
+        if (strcmp(REGISTERS_ADDRESS_NAMES[i], string) == 0) return i;
     }
     return -1;
 }
