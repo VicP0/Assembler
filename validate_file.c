@@ -56,7 +56,8 @@ int validLine(char *line){
         copyWord(&line[copyFromHere],temp,i - copyFromHere + 1);
         if(isLabel(temp,firstWordInLine)){
             index += strlen(temp);
-            i += 1;
+            while(isspace(line[index])) index++;/////////////////////////////////////
+            i = index;
             foundLabel = 1;
         }
         else {
@@ -118,11 +119,11 @@ int sendToOp(char *line,int operation,int copyFrom){
 
 int sendToInstruction(char *line, int instruction, int copyFrom){
     int index = copyFrom;
-    if(line[index] == '.')
-        index++;
+    //if(line[index] == '.')
+     //   index++;
     /* skip the operation word */
-    while(isspace(line[index]) && line[index] != '\0') index++;
-    while((isalpha(line[index]) && line[index] != '\0') || line[index] == '.') index++;
+    //while(isspace(line[index]) && line[index] != '\0') index++;
+   // while((isalpha(line[index]) && line[index] != '\0') || line[index] == '.') index++;
 
     while(isspace(line[index])) index++;
 
