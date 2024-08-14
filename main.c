@@ -1,6 +1,7 @@
 #include "pre_assembler.h"
 #include "encoder.h"
 
+
 int main(int argc, char *argv[]) {
     FILE **readFiles, **writeFiles, **postDeployReadFiles, **preScanFiles, **finalFiles;
     hashTable **macrosTables;
@@ -106,8 +107,7 @@ int main(int argc, char *argv[]) {
 
     for (i = 0; i < numOfFiles; i++) {
         printf("Processing file %s...\n", inputFileNames[i]);
-        if (!deploy_macros(readFiles[i], writeFiles[i],
-                           macrosTables[i], &longestMacroBodyLength)) {
+        if (!deploy_macros(readFiles[i], writeFiles[i],macrosTables[i], &longestMacroBodyLength)) {
             IC = 100;
             DC = 0;
             /* remove .am file */
