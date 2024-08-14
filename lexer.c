@@ -110,6 +110,19 @@ int isLabel(char *line,int firstWordInLine) {
         }
     }
 
+    for (i = 0; i < sizeof(registers) / sizeof(char *); i++) {
+        if (strcmp(firstWord, registersAddress[i]) == 0) {
+            if(firstWordInLine) {
+                /* TODO: error label defined as a register */
+                errors(15);
+                free(firstWord);
+                return 0;
+            }
+            else
+                return 1;
+        }
+    }
+
     if(!isalpha(firstChar) && firstChar != '.') {
         /* TODO: error first character isnt alphabet */
         errors(0);
