@@ -22,6 +22,25 @@ unsigned int calculate_hash(char *input, int size) {
     return sum % size;
 }
 
+
+//void print_hash_table(hashTable *table) {
+//    int i;
+//    hashTableItem *current;
+//
+//    for (i = 0; i < table->size; i++) {
+//        current = table->items[i];
+//        if (current == NULL) continue;  // Skip empty buckets
+//
+//        printf("Bucket %d:\n", i);
+//
+//        while (current != NULL) {
+//            printf("  Key: %s, Value: %s\n", current->key, current->value);
+//            current = current->next;
+//        }
+//    }
+//}
+
+
 int init_hash_table(hashTable *table, int size) {
     if (!table) return 0;
     table->items = (hashTableItem **) calloc(size, sizeof(hashTableItem *));
@@ -103,9 +122,10 @@ int insert(hashTable *table, char *key, char *value) {
 int contains_key(hashTable *table, char *key) {
     hashTableItem *current;
     int idx = calculate_hash(key, table->size);
+    //printf("%d\n",idx);
     if (table->items[idx] == NULL) return 0;
     current = table->items[idx];
-
+    //printf("%s\n",current->key);
     if (strcmp(current->key, key) == 0) return 1;
     current = current->next;
 
