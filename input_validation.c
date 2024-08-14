@@ -7,7 +7,7 @@ int firstGroupOps(int operation, char *line) {
     char *firstParameter;
     char *secondParameter;
     int copyFromMem = 0;
-    int numOfWords = 2; /* number of words to encode */ ///////////////////////////////////////check what is it
+    int numOfWords = 3; /* number of words to encode */ ///////////////////////////////////////check what is it
 
     /* skip whitespaces */
     while (isspace(line[i]))
@@ -80,9 +80,12 @@ int firstGroupOps(int operation, char *line) {
         return 0;
     }
 
-//    if(isRegister(firstParameter) && isRegister(secondParameter))/////////////////////// check if needed
-  //      numOfWords = 2;
-
+    if ((isRegister(firstParameter) && isRegister(secondParameter)) ||
+        (isRegister(firstParameter) && isRegisterAddress(secondParameter)) ||
+        (isRegisterAddress(firstParameter) && isRegister(secondParameter)) ||
+        (isRegisterAddress(firstParameter) && isRegisterAddress(secondParameter))) {
+        numOfWords = 2;
+    }
     free(firstParameter);
     free(secondParameter);
     return numOfWords;
@@ -92,7 +95,7 @@ int secondGroupOps(char *line, int operation) {
     int i = 0;
     int wordSize = 0;
     int copyFromMem = 0;
-    //int numOfWords = 2;
+    int numOfWords = 2;
     char *argument;
     //char *firstParam;
     //char *secondParam;
@@ -137,105 +140,17 @@ int secondGroupOps(char *line, int operation) {
                 free(argument);
                 return 0;
             }
-///*
-///* if any its without parenthesis like bne END */
-//            if(isLabel(argument,0) && terminatedCorrectly(line,i))
-//                return 2;
-////change from here
-//            if(line[i] != '*'){ //changed
-//                errors(18);
-//                return 0;
-//            }
-//            /* must jump into a label */
-//            if (!isLabel(argument,0)) {
-//                free(argument);
-//                return 0;
-//            }
-//            i++; /* skip the '*' */
-//            /* get first parameter */
-//            copyFromMem = i;
-//            if(line[i] == '#')
-//                i++;
-//            while(isalpha(line[i]) || isdigit(line[i]) || line[i] == '-' || line[i] == '+') i++;
-//            wordSize = i - copyFromMem;
-//            firstParam = (char *) malloc(sizeof(char *) * wordSize);
-//
-//            if(firstParam == NULL){
-//                errors(22);
-//                return 0;
-//            }
-//            copyWord(&line[copyFromMem], firstParam, wordSize);
-//
-//            i++;
-//            copyFromMem = i; /* start copying the second word */
-//            while (isalpha(line[i]) || isdigit(line[i]) || line[i] == '*') {
-//                i++;
-//            }
-//            wordSize = i - copyFromMem;
-//            secondParam = (char *) malloc(sizeof(char *) * wordSize);
-//
-//            if(secondParam == NULL){
-//                errors(22);
-//                return 0;
-//            }
-//            copyWord(&line[copyFromMem], secondParam, wordSize);
-//
-//            if(firstParam[0] == '*') {
-//                if (!bypassAdressing(firstParam)) { // changed
-//                    free(firstParam);
-//                    free(secondParam);
-//                    return 0;
-//                }
-//            }
-//            else if(!isRegister(firstParam) && !isLabel(firstParam,0)) {
-//                free(firstParam);
-//                free(secondParam);
-//                return 0;
-//            }
-//            if(secondParam[0] == '*') {
-//                if (!bypassAdressing(secondParam)) { // changed
-//                    free(firstParam);
-//                    free(secondParam);
-//                    return 0;
-//                }
-//            }
-//            else if(!isRegister(secondParam) && !isLabel(secondParam,0)) {
-//                free(firstParam);
-//                free(secondParam);
-//                return 0;
-//            }
-//
-//            /*  if(line[i] != ')') {
-//                  free(firstParam);
-//                  free(secondParam);
-//                  errors(18);
-//                  return 0;
-//              } */ //not relevant
-//
-//
-//
-//            if(isRegister(firstParam) && isRegister(secondParam))
-//                numOfWords = 3;
-//            else numOfWords = 4;
-//            free(firstParam);
-//            free(secondParam);
-//            break;
-//    }
-            /* skip the ) */
-            // if(line[i] == ')') not relevant
-            // i++;
-            //  */
             while (isspace(line[i]) && line[i] != '\0') i++;
             if (!terminatedCorrectly(line, i)) {
                 /* TODO: error */
                 errors(4);
                 return 0;
             }
-
-            free(argument);
-            return 2;
     }
+    free(argument);
+    return numOfWords;
 }
+
 int groupOneFirstArg(char *word, int operation) {
     char firstCharacter = word[0];
     int index = 0; /* get second character */
@@ -323,7 +238,7 @@ int validRegisterAddress(char *line) {
 
 int thirdGroupOps(char *line){
     int i = 0;
-    //while(isalpha(line[i])) i++;
+    while(isalpha(line[i])) i++;
     return terminatedCorrectly(line,i);
 }
 
@@ -415,6 +330,11 @@ int validEntryOrExtern(char *line){
     }
 
     if(isRegister(&line[i])){
+        errors(21);
+        return 0;
+    }
+
+    if(isRegisterAddress(&line[i])){
         errors(21);
         return 0;
     }
