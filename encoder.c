@@ -40,6 +40,7 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
 
         strcpy(copyCurrentLine, currentLine);
         L = validLine(copyCurrentLine);/////////////need to be change for our cases
+        printf("%d\n",L);
         strcpy(copyCurrentLine, currentLine);
         currentLabelLength = 0;
 
@@ -85,13 +86,13 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
                 /* initializing labelName */
                 strncpy(labelName, &currentLine[j-currentLabelLength], currentLabelLength);
                 labelName[currentLabelLength] = '\0';
-                //////////functionw as added
-                if(contains_key(macroTable,labelName)){
-                    fprintf(stderr, "Label %s already exists in macros!\n", labelName);
-                    continueToSecondScan = 0;
-                    continue;
-                }
-                //til here
+//                //////////functionw as added
+//                if(contains_key(macroTable,labelName)){
+//                    fprintf(stderr, "Label %s already exists in macros!\n", labelName);
+//                    continueToSecondScan = 0;
+//                    continue;
+//               }
+//              //til here
                 /* handle duplications and handling case where label was declared before ".entry labelName" command */
                 if (contains_key_int(table, labelName)) {
                     /* setting isData to -1 means no change for initial isData value */
@@ -146,13 +147,13 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
                 strncpy(labelName, &currentLine[j-currentLabelLength], currentLabelLength);
                 labelName[currentLabelLength] = '\0';
 
-                //////////functionw as added
-                if(contains_key(macroTable,labelName)){
-                    fprintf(stderr, "Label %s already exists in macros!\n", labelName);
-                    continueToSecondScan = 0;
-                    continue;
-                }
-                //til here
+//                //////////functionw as added
+//                if(contains_key(macroTable,labelName)){
+//                    fprintf(stderr, "Label %s already exists in macros!\n", labelName);
+//                    continueToSecondScan = 0;
+//                    continue;
+//                }
+//                //til here
 
                 /* handle duplications */
                 if (contains_key_int(externsTable, labelName)) {
@@ -237,7 +238,7 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
             labelName = (char *) malloc(maxLabelLength);
         } else if (maxLabelLength < currentLabelLength) {
             maxLabelLength = currentLabelLength;
-            labelName = (char *) realloc(labelName, maxLabelLength);
+        //    labelName = (char *) realloc(labelName, maxLabelLength);/////////////////////////////////////////////////////////////////
         }
         /* memory allocation was unsuccessful */
         if (labelName == NULL) {
@@ -248,12 +249,12 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
         strncpy(labelName, &currentLine[i-currentLabelLength], currentLabelLength);
         labelName[currentLabelLength] = '\0';
 
-        //////////functionw as added
-        if(contains_key(macroTable,labelName)){
-            fprintf(stderr, "Label %s already exists in macros!\n", labelName);
-            continueToSecondScan = 0;
-            continue;
-        }
+//        //////////functionw as added
+//        if(contains_key(macroTable,labelName)){
+//            fprintf(stderr, "Label %s already exists in macros!\n", labelName);
+//            continueToSecondScan = 0;
+//            continue;
+ //       }
         //til here
 
         /* skipping colon and space */
@@ -457,7 +458,7 @@ int second_scan(char *fileName, FILE *readFile, FILE *writeFile, hashTableInt *t
         i++; /* skip tab */
 
         /* encoded line doesn't need to be rewritten */
-        if (currentLine[i] == '.' || currentLine[i] == '/') {
+        if (currentLine[i] < '8' && currentLine[i] >= '0') {
             if (L < 1000) fprintf(writeFile, "%d%d\t%s\n", 0, L, &currentLine[i]);
             else fprintf(writeFile, "%d\t%s\n", L, &currentLine[i]);
             continue;
@@ -524,7 +525,7 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
         case CMP_CODE:
         case ADD_CODE:
         case SUB_CODE: {
-            token = strtok(line, " \t\n,#*");/////////////////////////////////////////// think
+            token = strtok(line, " \t\n,#");/////////////////////////////////////////// think
             while (token != NULL) {
                 if (!isEncodedFirst) {
                     if ((firstRegisterIdx = is_register(token)) != -1) {
@@ -646,7 +647,7 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
                     firstRegisterAddressIdx = secondRegisterAddressIdx = -1;
 
                 }
-                token = strtok(NULL, " \t\n,*");
+                token = strtok(NULL, " \t\n,");
             }
             isEncodedFirst = isEncodedSecond = 0;
             break;
@@ -654,7 +655,7 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
 
             /* same thing but no immediate addressing */
         case LEA_CODE: {
-            token = strtok(line, " \t\n,*");
+            token = strtok(line, " \t\n,");
             while (token != NULL) {
                 if (!isEncodedFirst) {
                     if (is_label(token)) {
@@ -741,7 +742,7 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
                     firstRegisterIdx = secondRegisterIdx = -1;
                     firstRegisterAddressIdx = secondRegisterAddressIdx = -1;
                 }
-                token = strtok(NULL, " \t\n,*");
+                token = strtok(NULL, " \t\n,");
             }
             isEncodedFirst = isEncodedSecond = 0;
             break;
@@ -754,7 +755,7 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
         case DEC_CODE:
         case RED_CODE:
         case PRN_CODE: {
-            token = strtok(line, " \t\n#*");
+            token = strtok(line, " \t\n#");
             while (token != NULL) {
                 if (!isEncodedFirst) {
                     if ((secondRegisterIdx = is_register(token)) != -1) {
@@ -791,7 +792,7 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
                     secondRegisterIdx = -1;
                     secondRegisterAddressIdx = -1;
                 }
-                token = strtok(NULL, " \t\n#*");
+                token = strtok(NULL, " \t\n#");
             }
             isEncodedFirst = isEncodedSecond = 0;
 
@@ -802,7 +803,7 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
         case JMP_CODE:
         case BNE_CODE:
         case JSR_CODE: {
-            token = strtok(line, " \t\n*");
+            token = strtok(line, " \t\n");
             while (token != NULL) {
                 if (!isEncodedFirst) {
                     if((secondRegisterAddressIdx = is_register_address(token)) != -1){
@@ -820,7 +821,7 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
                     secondRegisterIdx = -1;
                     secondRegisterAddressIdx = -1;
                 }
-                token = strtok(line, " \t\n*");
+                token = strtok(NULL, " \t\n");
             }
             isEncodedFirst = isEncodedSecond = 0;
             break;
