@@ -14,3 +14,6 @@ void calculate_longest_macro_body(FILE *file, int *longest);
 
 /* used to check whether a macro name is a command name */
 int is_command(char *line);
+
+/* used to check if a line contain a label and save the label name in the array */
+int containLabel(char **labelNamesArray,char *cutCurrentLine,int labelNamesArraySize, int endOfWord);
