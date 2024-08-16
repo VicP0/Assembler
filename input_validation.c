@@ -1,350 +1,286 @@
+#include "hash_table.h"
 
-#include "input_validation.h"
+#define FIRST_PRIME 54059 /* a prime */
+#define SECOND_PRIME 76963 /* another prime */
+#define THIRD_PRIME 86969 /* yet another prime */
+#define START_NUM 37 /* also prime */
 
-int firstGroupOps(int operation, char *line) {
-    int i = 0;
-    int wordSize = 0;
-    char *firstParameter;
-    char *secondParameter;
-    int copyFromMem = 0;
-    int numOfWords = 3; /* number of words to encode */ ///////////////////////////////////////check what is it
+const int PRIME_FOR_HASH = 37;
+const int HASH_MOD = 1e9+7;
 
-    /* skip whitespaces */
-    while (isspace(line[i]))
-        i++;
-
-    /* get first argument */
-    copyFromMem = i;
-    while (line[i] != ',' && line[i] != '\0') i++;
-    wordSize = i - copyFromMem;
-    firstParameter = (char *) malloc(sizeof(char *) * wordSize);
-
-    if(firstParameter == NULL){
-        errors(22);
-        return 0;
+/* idea for a hash function */
+unsigned int calculate_hash(char *input, int size) {
+    unsigned int sum = START_NUM;
+    int i;
+    for (i = 0; input[i] != '\0'; i++) {
+        /* setting each possible character a code for hashing function:
+         * '0'=1, '1'=2,..., '9'=10, 'a'=11, 'b'=12,...,'z'=36, 'A'=37, 'B'=38,...,'Z'=62, '_'=63 */
+        if (islower(input[i])) sum = (sum * FIRST_PRIME) ^ ((input[i]-86) * SECOND_PRIME);  /* sum = (sum + powerPrime * (input[i]-86)) % HASH_MOD; */
+        else if (isupper(input[i])) sum = (sum * FIRST_PRIME) ^ ((input[i]-28) * SECOND_PRIME); /* sum = (sum + powerPrime * (input[i]-28)) % HASH_MOD; */
+        else if (isdigit(input[i])) sum = (sum * FIRST_PRIME) ^ ((input[i]-47) * SECOND_PRIME); /* sum = (sum + powerPrime * (input[i]-47)) % HASH_MOD; */
     }
-    copyWord(&line[copyFromMem], firstParameter, wordSize);
-    if(line[i] == '\0'){
-        errors(19);
-        free(firstParameter);
-        return 0;
-    }
-    if(line[i] != ','){//check maybe thier are spaces before the ,//////////////////////////////////////////////////////
-        /* TODO: error missing comma */
-        errors(7);
-        free(firstParameter);
-        return 0;
-    }
-
-    /* get second argument */
-    i++; /* skip first comma */
-    while (isspace(line[i]) && line[i] != '\0') i++;
-    copyFromMem = i; /* start copying the second word */
-
-    if(line[i] == '\0'){
-        errors(19);
-        free(firstParameter);
-        return 0;
-    }
-    while ((isalpha(line[i]) || isdigit(line[i])) || line[i] == '#' || line[i] == '+' || line[i] == '-' || line[i] == '*') i++; //changed
-
-    wordSize = i - copyFromMem;
-    secondParameter = (char *) malloc(sizeof(char *) * wordSize);
-
-    if(secondParameter == NULL){
-        errors(22);
-        return 0;
-    }
-    copyWord(&line[copyFromMem], secondParameter, wordSize);
-
-
-    if (groupOneFirstArg(firstParameter, operation) == 0) {
-        /* TODO: error */
-        free(firstParameter);
-        free(secondParameter);
-        return 0;
-    }
-
-
-    if (groupOneSecondArg(secondParameter, operation) == 0) {
-        /* TODO: error */
-        free(firstParameter);
-        free(secondParameter);
-        return 0;
-    }
-
-    if(!terminatedCorrectly(line, i)){
-        errors(4);
-        free(firstParameter);
-        free(secondParameter);
-        return 0;
-    }
-
-    if ((isRegister(firstParameter) && isRegister(secondParameter)) ||
-        (isRegister(firstParameter) && isRegisterAddress(secondParameter)) ||
-        (isRegisterAddress(firstParameter) && isRegister(secondParameter)) ||
-        (isRegisterAddress(firstParameter) && isRegisterAddress(secondParameter))) {
-        numOfWords = 2;
-    }
-    free(firstParameter);
-    free(secondParameter);
-    return numOfWords;
+    return sum % size;
 }
 
-int secondGroupOps(char *line, int operation) {
-    int i = 0;
-    int wordSize = 0;
-    int copyFromMem = 0;
-    int numOfWords = 2;
-    char *argument;
-    //char *firstParam;
-    //char *secondParam;
+int init_hash_table(hashTable *table, int size) {
+    if (!table) return 0;
+    table->items = (hashTableItem **) calloc(size, sizeof(hashTableItem *));
 
-    /* skip whitespaces */
-    while (isspace(line[i]) && line[i] != '\0') i++;
-    /* get first argument */
-    copyFromMem = i;
-    while ((isalpha(line[i]) || isdigit(line[i])) || line[i] == '#' || line[i] == '+' || line[i] == '-' ||
-           line[i] == '*')
-        i++;
-    wordSize = i - copyFromMem;
-    argument = (char *) malloc(sizeof(char *) * wordSize);
-
-    if (argument == NULL) {
-        errors(22);
-        return 0;
-    }
-    copyWord(&line[copyFromMem], argument, wordSize);
-    switch (operation) {
-        case CLR_CODE:
-        case NOT_CODE:
-        case INC_CODE:
-        case DEC_CODE:
-        case RED_CODE:
-            if (!validLabel(argument) && !validRegister(argument) && !validRegisterAddress(argument)) {
-                free(argument);
-                return 0;
-            }
-            break;
-        case PRN_CODE:
-            if (!immediateAddressing(argument) && !validLabel(argument) && !validRegister(argument) &&
-                !validRegisterAddress(argument)) {
-                free(argument);
-                return 0;
-            }
-            break;
-        case JMP_CODE:
-        case BNE_CODE:
-        case JSR_CODE:
-            if (!validLabel(argument) && !validRegisterAddress(argument)) {
-                free(argument);
-                return 0;
-            }
-            while (isspace(line[i]) && line[i] != '\0') i++;
-            if (!terminatedCorrectly(line, i)) {
-                /* TODO: error */
-                errors(4);
-                return 0;
-            }
-    }
-    free(argument);
-    return numOfWords;
+    if (table->items == NULL) return 0;
+    table->size = size;
+    /* if memory allocated successfully */
+    return 1;
 }
 
-int groupOneFirstArg(char *word, int operation) {
-    char firstCharacter = word[0];
-    int index = 0; /* get second character */
+char *get_value(hashTable *table, char *key) {
+    int idx;
+    hashTableItem *current;
 
+    if (!contains_key(table, key)) {
+        fprintf(stderr, HASH_TABLE_KEY_DOESNT_EXIST_ERROR_MESSAGE);
+        return NULL; /* retrieval of value was unsuccessful */
+    }
 
-    if (operation >= MOV_CODE && operation <= SUB_CODE) {
-        if (firstCharacter == '#') {
-            if( immediateAddressing(word) == 0) {
-                /* TODO: error invalid number */
-                return 0;
-            }
-        } else if (!isLabel(word,0) && !isRegister(word) && !isRegisterAddress(word)) {
-            /* not a label, not a register and not a register address*/
+    idx = calculate_hash(key, table->size);
+    current = table->items[idx];
+
+    if (strcmp(key, table->items[idx]->key) == 0) return table->items[idx]->value;
+    /* continue through the linked list */
+    while (current) {
+        if (strcmp(key, current->key) == 0) return current->value;
+        current = current->next;
+    }
+
+    return 0;
+}
+
+int insert(hashTable *table, char *key, char *value) {
+    int idx, keyLength, valueLength;
+    hashTableItem *current, *last;
+    if (strlen(key) == 0) return HASH_TABLE_INSERT_EMPTY_KEY_ERROR_CODE;
+    if (strlen(value) == 0) return HASH_TABLE_INSERT_EMPTY_VALUE_ERROR_CODE;
+    /* before calculating hash, checking if key exists */
+    if (contains_key(table, key)) return HASH_TABLE_INSERT_CONTAINS_KEY_ERROR_CODE;
+
+    idx = calculate_hash(key, table->size);
+    last = (hashTableItem*) calloc(1, sizeof(hashTableItem));
+
+    /* if memory allocation was unsuccessful */
+    if (last == NULL) {
+        fprintf(stderr, MEMORY_NOT_ALLOCATED_SUCCESSFULLY_ERROR_MESSAGE);
+        return MEMORY_NOT_ALLOCATED_ERROR_CODE;
+    }
+
+    /* if idx is not taken */
+    if (table->items[idx] == NULL) table->items[idx] = last;
+    else {
+        current = table->items[idx];
+        while (current->next != NULL) current = current->next;
+        current->next = last;
+    }
+
+    /* setting key and value for hash table item */
+    keyLength = strlen(key);
+    valueLength = strlen(value);
+    last->key = (char *) malloc(keyLength);
+    last->value = (char *) malloc(valueLength);
+
+    if (last->key == NULL || last->value == NULL) {
+        fprintf(stderr, MEMORY_NOT_ALLOCATED_SUCCESSFULLY_ERROR_MESSAGE);
+        return MEMORY_NOT_ALLOCATED_ERROR_CODE;
+    }
+
+    strcpy(last->key, key);
+    strcpy(last->value, value);
+
+    last->key[keyLength] = '\0';
+    last->value[valueLength] = '\0';
+
+    /* everything went fine */
+    return 1;
+}
+
+int contains_key(hashTable *table, char *key) {
+    hashTableItem *current;
+    int idx = calculate_hash(key, table->size);
+    //printf("%d\n",idx);
+    if (table->items[idx] == NULL) return 0;
+    current = table->items[idx];
+    //printf("%s\n",current->key);
+    if (strcmp(current->key, key) == 0) return 1;
+    current = current->next;
+
+    while (current) {
+        if (strcmp(current->key, key) == 0) return 1;
+        current = current->next;
+    }
+    return 0;
+}
+
+int change_value(hashTable *table, char *key, char *value) {
+    int idx, valueLength, itemValueLength;
+    hashTableItem *current;
+    /* can't change value which isn't in table */
+    if (!contains_key(table, key)) {
+        fprintf(stderr, HASH_TABLE_KEY_DOESNT_EXIST_ERROR_MESSAGE);
+        return HASH_TABLE_KEY_DOESNT_EXIST_ERROR_CODE;
+    }
+
+    idx = calculate_hash(key, table->size);
+    current = table->items[idx];
+    while (current) {
+        if (strcmp(current->key, key) == 0) break;
+        current = current->next;
+    }
+
+    itemValueLength = strlen(current->value);
+    valueLength = strlen(value);
+
+    /* if value's length is longer than item's length */
+    if (valueLength > itemValueLength) {
+        current->value = (char *) realloc(current->value,
+                                          valueLength);
+        if (current->value == NULL) {
+            fprintf(stderr, MEMORY_NOT_ALLOCATED_SUCCESSFULLY_ERROR_MESSAGE);
+            return MEMORY_NOT_ALLOCATED_ERROR_CODE;
+        }
+        /* filling new memory with NULL */
+        memset(current->value, 0, valueLength);
+    } else if (valueLength == itemValueLength) {
+        /* filling previous value with NULL */
+        memset(current->value, 0, itemValueLength);
+    } else if (valueLength > 0) {
+        current->value = (char *) realloc(current->value,
+                                          valueLength);
+        if (current->value == NULL) {
+            fprintf(stderr, MEMORY_NOT_ALLOCATED_SUCCESSFULLY_ERROR_MESSAGE);
+            return MEMORY_NOT_ALLOCATED_ERROR_CODE;
+        }
+
+        memset(current->value, 0, valueLength);
+    }
+    /* copying value to item */
+    strcpy(current->value, value);
+    return 1;
+}
+
+int get_value_int(hashTableInt *table, char *key) {
+    int idx;
+    hashTableIntItem *current;
+
+    if (!contains_key_int(table, key)) {
+        fprintf(stderr, HASH_TABLE_KEY_DOESNT_EXIST_ERROR_MESSAGE);
+        return 0; /* retrieval of value was unsuccessful */
+    }
+
+    idx = calculate_hash(key, table->size);
+    current = table->items[idx];
+
+    if (strcmp(key, table->items[idx]->key) == 0) return table->items[idx]->value;
+    /* continue through the linked list */
+    while (current) {
+        if (strcmp(key, current->key) == 0) return current->value;
+        current = current->next;
+    }
+
+    return 0;
+}
+
+/* setting isData to -1 means no change */
+int insert_int(hashTableInt *table, char *key, int value, int isData) {
+    int idx, keyLength;
+    hashTableIntItem *current, *last;
+    if (strlen(key) == 0) return HASH_TABLE_INSERT_EMPTY_KEY_ERROR_CODE;
+    if (value == -1) return HASH_TABLE_INSERT_EMPTY_VALUE_ERROR_CODE;
+    /* before calculating hash, checking if key exists */
+    if (contains_key_int(table, key)) return HASH_TABLE_INSERT_CONTAINS_KEY_ERROR_CODE;
+
+    idx = calculate_hash(key, table->size);
+    last = (hashTableIntItem*) calloc(1, sizeof(hashTableIntItem));
+
+    /* if memory allocation was unsuccessful */
+    if (last == NULL) {
+        fprintf(stderr, MEMORY_NOT_ALLOCATED_SUCCESSFULLY_ERROR_MESSAGE);
+        return MEMORY_NOT_ALLOCATED_ERROR_CODE;
+    }
+
+    last->key = NULL;
+    last->value = -1;
+    if (isData != -1) last->isData = 0;
+
+    /* if idx is not taken */
+    if (table->items[idx] == NULL) table->items[idx] = last;
+    else {
+        current = table->items[idx];
+        while (current->next != NULL) current = current->next;
+        current->next = last;
+    }
+
+    /* setting key and value for hash table item */
+    keyLength = strlen(key);
+    last->key = (char *) calloc(keyLength, sizeof(char));
+
+    if (last->key == NULL) {
+        fprintf(stderr, MEMORY_NOT_ALLOCATED_SUCCESSFULLY_ERROR_MESSAGE);
+        return MEMORY_NOT_ALLOCATED_ERROR_CODE;
+    }
+
+    strcpy(last->key, key);
+    last->value = value;
+    if (isData != -1) last->isData = isData;
+
+    /* everything went fine */
+    return 1;
+}
+
+int contains_key_int(hashTableInt *table, char *key) {
+    hashTableIntItem *current;
+    int idx = calculate_hash(key, table->size);
+
+    current = table->items[idx];
+    if (current == NULL) return 0;
+
+    if (strcmp(current->key, key) == 0) return 1;
+    if (!(current = current->next)) return 0;
+
+    while (current) {
+        if (!current->key) {
             return 0;
         }
-    } else if (operation == LEA_CODE && immediateAddressing(word)) {
-        /* TODO: error */
-        return 0;
+        if (strcmp(current->key, key) == 0) return 1;
+        current = current->next;
     }
-   // while (!isspace(word[index]) && word[index] != '\0' && word[index] != ',') {
-  //      index++;
- //   }
-//    while (isspace(word[index]) && word[index] != '\0')
-//        index++;
+    return 0;
+}
 
+int change_value_int(hashTableInt *table, char *key, int value, int isData) {
+    int idx;
+    hashTableIntItem *current;
+    /* can't change value which isn't in table */
+    if (!contains_key_int(table, key)) {
+        fprintf(stderr, HASH_TABLE_KEY_DOESNT_EXIST_ERROR_MESSAGE);
+        return HASH_TABLE_KEY_DOESNT_EXIST_ERROR_CODE;
+    }
+
+    idx = calculate_hash(key, table->size);
+    current = table->items[idx];
+    while (current) {
+        if (strcmp(current->key, key) == 0) break;
+        current = current->next;
+    }
+
+    /* copying value to item */
+    current->value = value;
+    current->isData = isData;
     return 1;
 }
 
-/* send the word into this function with one comma already checked in order to check multiple commas */
-int groupOneSecondArg(char *word, int operation) {
-    char firstCharacter = word[0];
+int init_hash_table_int(hashTableInt *table, int size) {
+    if (!table) return 0;
+    table->items = (hashTableIntItem **) calloc(size, sizeof(hashTableIntItem *));
 
-    if (firstCharacter == ',') {
-        /* TODO: error multiple commas */
-        return 0;
-    } else if (strlen(word) == 0) {
-        /* TODO: missing parameter */
-        return 0;
-    } else if (operation == CMP_CODE && firstCharacter == '#') {
-        if (!(immediateAddressing(word))) {
-            /* TODO: error invalid number */
-            return 0;
-        } else
-            return 1;
-    } else if (!isRegister(word)&&!isLabel(word,0)&&!isRegisterAddress(word)) {
-        /* TODO: error */
-        return 0;
-    }
-
-
+    if (table->items == NULL) return 0;
+    table->size = size;
+    /* if memory allocated successfully */
     return 1;
-}
-
-int validRegister(char *line) {
-    if (strlen(line) == 0) {
-        /* missing parameter */
-        errors(19);
-        return 0;
-    } else if (!isRegister(line)) {
-        return 0;
-    }
-    return 1;
-}
-int validLabel(char *line) {
-    if (strlen(line) == 0) {
-        /* missing parameter */
-        errors(19);
-        return 0;
-    } else if (!isLabel(line,0)) {
-        return 0;
-    }
-    return 1;
-}
-
-int validRegisterAddress(char *line) {
-    if (strlen(line) == 0) {
-        /* missing parameter */
-        errors(19);
-        return 0;
-    } else if (!isRegisterAddress(line)) {
-        return 0;
-    }
-    return 1;
-}
-
-int thirdGroupOps(char *line){
-    int i = 0;
-    while(isalpha(line[i])) i++;
-    return terminatedCorrectly(line,i);
-}
-
-int validData(char *line){
-    int i = 0;
-    enum status state;
-    char *currentNum;
-    int copyFromHere;
-    int numOfDigits;
-    int numOfWords = 0;
-    state = NUMBER;
-    /* skip whitespaces */
-    while(isspace(line[i])) i++;
-
-    while(line[i] != '\0'){
-        switch(state){
-            case NUMBER:
-                numOfWords += 1;
-                copyFromHere = i;
-                while(!isspace(line[i]) && line[i] != ',' && line[i] != '\0') i++;
-                numOfDigits = i - copyFromHere;
-                currentNum = (char*)malloc(sizeof(char*) * numOfDigits);
-                if(currentNum == NULL){
-                    errors(22);
-                    return 0;
-                }
-                copyWord(&line[copyFromHere],currentNum,numOfDigits);
-                /* invalid number input */
-                if(validNumber(currentNum) == 0){
-                    free(currentNum);
-                    return 0;
-                }
-
-                /* continue running until ',' or '\0' */
-                while(isspace(line[i])) i++;
-                if(line[i] != ',' && line[i] != '\0') {
-                    free(currentNum);
-                    return 0;
-                }
-
-                if(line[i] == '\0')
-                    state = DONE;
-                else
-                    state = COMMA;
-                break;
-
-            case COMMA:
-                i++;
-                while(isspace(line[i])) i++;
-                if(line[i] != '+' && line[i] != '-' && !isdigit(line[i])) {
-                    errors(10);
-                    free(currentNum);
-                    return 0;
-                }
-                state = NUMBER;
-                break;
-
-            case DONE:
-                free(currentNum);
-                return 1;
-        }
-    }
-    free(currentNum);
-    return numOfWords;
-}
-
-int validString(char *line){
-    int i = 0;
-    int finalChar = strlen(line) - 1;
-    /*skip whitespaces */
-    while(isspace(line[i])) i++;
-
-    if(line[i] != '"' || line[finalChar] != '"')
-        return 0;
-    return strlen(&line[i]) - 2;
-}
-
-int validEntryOrExtern(char *line){
-    int i = 0;
-    int copyFrom = 0;
-
-    /*skip whitespaces */
-    while(isspace(line[i])) i++;
-    copyFrom = i;
-
-    if(line[i] == '\0'){
-        errors(19);
-        return 0;
-    }
-
-    if(isRegister(&line[i])){
-        errors(21);
-        return 0;
-    }
-
-    if(isRegisterAddress(&line[i])){
-        errors(21);
-        return 0;
-    }
-
-    while(isalpha(line[i]) || isdigit(line[i])) i++;
-    while(isspace(line[i])) i++;
-
-    if(line[i] != '\0'){
-        errors(4);
-        return 0;
-    }
-    return isLabel(&line[copyFrom],0);
 }
