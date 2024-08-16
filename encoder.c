@@ -5,7 +5,7 @@ const char *REGISTERS_NAMES[] = {
 const char *REGISTERS_ADDRESS_NAMES[] = {
         "*r0", "*r1", "*r2", "*r3", "*r4", "*r5", "*r6", "*r7" };
 
-int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *DC,hashTableInt *entriesTable, hashTableInt *externsTable, hashTable *macroTable) {/////////changed
+int first_scan(FILE *file, FILE *writeFile, FILE *writeDataFile, hashTableInt *table, int *IC, int *DC,hashTableInt *entriesTable, hashTableInt *externsTable, int *lines) {////////////////////////////////////
     int i, j, startParamsIdx;
     /* flag whether to encode currentLine of not */
     int encodeLine = 1, continueToSecondScan = 1;
@@ -39,11 +39,10 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
         } else continue;
 
         strcpy(copyCurrentLine, currentLine);
-        L = validLine(copyCurrentLine);/////////////need to be change for our cases
-        printf("%d\n",L);
+        L = validLine(copyCurrentLine);
         strcpy(copyCurrentLine, currentLine);
         currentLabelLength = 0;
-
+        *lines += L;
         if (!L) {
             fprintf(stderr, "in line %d\n\n", lineNum);
             encodeLine = 0;
@@ -56,7 +55,7 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
         }
 
         if (command_code(currentLine) == RTS_CODE || command_code(currentLine) == STOP_CODE) {
-            encode_regular_command(writeFile, command_code(currentLine),////////////////////need to be changed
+            encode_regular_command(writeFile, command_code(currentLine),
                                    currentLine, lineNum, encodedString);
             (*IC) += L;
             continue;
@@ -86,13 +85,6 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
                 /* initializing labelName */
                 strncpy(labelName, &currentLine[j-currentLabelLength], currentLabelLength);
                 labelName[currentLabelLength] = '\0';
-//                //////////functionw as added
-//                if(contains_key(macroTable,labelName)){
-//                    fprintf(stderr, "Label %s already exists in macros!\n", labelName);
-//                    continueToSecondScan = 0;
-//                    continue;
-//               }
-//              //til here
                 /* handle duplications and handling case where label was declared before ".entry labelName" command */
                 if (contains_key_int(table, labelName)) {
                     /* setting isData to -1 means no change for initial isData value */
@@ -147,14 +139,6 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
                 strncpy(labelName, &currentLine[j-currentLabelLength], currentLabelLength);
                 labelName[currentLabelLength] = '\0';
 
-//                //////////functionw as added
-//                if(contains_key(macroTable,labelName)){
-//                    fprintf(stderr, "Label %s already exists in macros!\n", labelName);
-//                    continueToSecondScan = 0;
-//                    continue;
-//                }
-//                //til here
-
                 /* handle duplications */
                 if (contains_key_int(externsTable, labelName)) {
                     fprintf(stderr, "%s: %s", labelName, LABEL_DECLARED_EXTERN_ERROR_MESSAGE);
@@ -193,7 +177,7 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
                 for (startParamsIdx = startParamsIdx + 1; isalpha(currentLine[startParamsIdx])
                                                           || isspace(currentLine[startParamsIdx]); startParamsIdx++);
                 startParamsIdx++; /* skip \" */
-                encode_data_command(writeFile, &copyCurrentLine[startParamsIdx], 0, lineNum, encodedString, DC);
+                encode_data_command(writeDataFile, &copyCurrentLine[startParamsIdx], 0, lineNum, encodedString, DC);///////////////////////////////////////
                 continue;
             } else if (strstr(currentLine, DATA_STORE_COMMAND)) {
                 strcpy(copyCurrentLine, currentLine);
@@ -202,7 +186,7 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
                 /* skip data word and spaces after */
                 for (startParamsIdx = startParamsIdx + 1; isalpha(currentLine[startParamsIdx])
                                                           || isspace(currentLine[startParamsIdx]); startParamsIdx++);
-                encode_data_command(writeFile, &copyCurrentLine[startParamsIdx], 1, lineNum, encodedString, DC);
+                encode_data_command(writeDataFile, &copyCurrentLine[startParamsIdx], 1, lineNum, encodedString, DC);///////////////////////////////////////////////////
                 continue;
             }
 
@@ -237,8 +221,8 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
             maxLabelLength = currentLabelLength;
             labelName = (char *) malloc(maxLabelLength);
         } else if (maxLabelLength < currentLabelLength) {
-            maxLabelLength = currentLabelLength;
-        //    labelName = (char *) realloc(labelName, maxLabelLength);/////////////////////////////////////////////////////////////////
+            labelName = (char *) realloc(labelName, maxLabelLength);
+            maxLabelLength = currentLabelLength;/////////////////////////////////////////////////////////////////////////god know what we did here
         }
         /* memory allocation was unsuccessful */
         if (labelName == NULL) {
@@ -248,15 +232,6 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
         /* initializing labelName */
         strncpy(labelName, &currentLine[i-currentLabelLength], currentLabelLength);
         labelName[currentLabelLength] = '\0';
-
-//        //////////functionw as added
-//        if(contains_key(macroTable,labelName)){
-//            fprintf(stderr, "Label %s already exists in macros!\n", labelName);
-//            continueToSecondScan = 0;
-//            continue;
- //       }
-        //til here
-
         /* skipping colon and space */
         i += 2;
 
@@ -285,11 +260,11 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
 
             /* .data declaration */
             if (strcmp(storeDataString, DATA_STORE_COMMAND) == 0) {
-                encode_data_command(writeFile, &copyCurrentLine[startParamsIdx], 1, lineNum, encodedString, DC);
+                encode_data_command(writeDataFile, &copyCurrentLine[startParamsIdx], 1, lineNum, encodedString, DC);//////////////////////////////////
                 /* .string declaration */
             } else if (strcmp(storeDataString, STRING_STORE_COMMAND) == 0) {
                 startParamsIdx++; /* skipping the \" at the beginning */
-                encode_data_command(writeFile, &copyCurrentLine[startParamsIdx], 0, lineNum, encodedString, DC);
+                encode_data_command(writeDataFile, &copyCurrentLine[startParamsIdx], 0, lineNum, encodedString, DC);////////////////////////////////////////////
             }
 
             if (maxLabelLength != -1) memset(labelName, 0, maxLabelLength);
@@ -359,8 +334,8 @@ int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *D
             }
         }
     }
-
-    free(labelName);
+    if(labelName != NULL)
+        free(labelName);
 
     return continueToSecondScan;
 }
@@ -510,7 +485,7 @@ int encode_regular_command(FILE *writeFile, short operationEncode, char *line, i
     int firstRegisterIdx = -1, secondRegisterIdx = -1;
     int firstRegisterAddressIdx = -1, secondRegisterAddressIdx = -1;//
     char labelBeforeParams[MAX_WORD_LENGTH];
-    char copyLine[MAX_WORD_LENGTH];
+    char copyLine[MAX_WORD_LENGTH];///////////////////////////////
     int isEncodedFirst = 0, isEncodedSecond = 0;
     short firstParamEncode, secondParamEncode, thirdEncode, encodedWord;
     firstParamEncode = secondParamEncode = encodedWord = 0;
@@ -967,4 +942,12 @@ int is_register_address(char *string) {
         if (strcmp(REGISTERS_ADDRESS_NAMES[i], string) == 0) return i;
     }
     return -1;
+}
+
+void combine_files(FILE *target,FILE *source){
+    char line[MAX_WORD_LENGTH];
+    while (fgets(line, MAX_WORD_LENGTH, source) != NULL){
+        fprintf(target,"%s",line);
+
+    }
 }
