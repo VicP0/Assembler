@@ -8,8 +8,8 @@ enum addressingType {
 
 /* checking .am file for labels, data/string declarations and encoding all statements that don't include a label
  * setting every to-be-encoded-label's line with the label's name */
-int first_scan(FILE *file, FILE *writeFile, hashTableInt *table, int *IC, int *DC,
-               hashTableInt *entriesTable, hashTableInt *externsTable, hashTable *macroTable);/////////////////changed macrotable added
+int first_scan(FILE *file, FILE *writeFile, FILE *writeDataFile, hashTableInt *table, int *IC, int *DC,
+               hashTableInt *entriesTable, hashTableInt *externsTable, int *lines);//////////////////////////////////////////////////
 /* checking .temp_ob file created from first_scan function and checking every line marked with a label name to encode it with it's value inserted in first_scan */
 int second_scan(char *fileName, FILE *readFile, FILE *writeFile, hashTableInt *table, hashTableInt *entriesTable, hashTableInt *externsTable, int *IC, int *DC);
 
@@ -31,3 +31,5 @@ int is_label(char *string);
 void convert_to_special_binary(int num, char finalString[]);
 /* writing the special binary representation of parameter num and writing the line number to its' left */
 void write_to_ob_file(int num, char finalString[], int lineNum, FILE *file);//
+/*write the text from the source file to the target file*/
+void combine_files(FILE *target,FILE *source);
