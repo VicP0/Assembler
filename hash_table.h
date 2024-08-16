@@ -32,7 +32,6 @@ typedef struct hashTableInt {
     hashTableIntItem **items;
     int size;
 } hashTableInt;
-void print_hash_table(hashTable *table);
 /* generating hash value withing [0, size) range to store in hash table array */
 unsigned int calculate_hash(char *input, int size);
 /* allocating memory for hash table array */
