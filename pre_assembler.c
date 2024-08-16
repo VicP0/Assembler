@@ -1,4 +1,5 @@
 #include "pre_assembler.h"
+#include "lexer.h"
 
 int deploy_macros(FILE *readFile, FILE *writeFile, hashTable *labelTable, int *longestMacroBodyLength) {
     calculate_longest_macro_body(readFile, longestMacroBodyLength);
@@ -24,6 +25,8 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
     int maxMacroBodyLength = *longestMacroBody, endMacro = 1;
     int macroNameMaxLength = -1, currentMacroLength = 0;
     int tokenLength, currentLineLength = -1, insertResultCode;
+    int labelsInArray = 0;
+    int allocatedSize = DEF_ARRAY_SIZE;
     char *token;
     char *macroName = NULL;
     char *macroBody = NULL;
@@ -31,7 +34,8 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
     char currentLine[MAX_WORD_LENGTH];
     char tempLine[MAX_WORD_LENGTH];
     char cutCurrentLine[MAX_WORD_LENGTH];
-
+    char **labelNamesArray;
+    labelNamesArray = (char **)malloc(allocatedSize * sizeof(char *));
     macroStatus = NOT_IN_MACRO;
 
     if (maxMacroBodyLength > 0) {
@@ -53,6 +57,14 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
         if (start >= end) continue;
         for (i = start; i <= end; i++) cutCurrentLine[i-start] = currentLine[i];
         i=i-start;
+        if(containLabel(labelNamesArray,cutCurrentLine,labelsInArray,i)){
+            labelsInArray ++;
+            if(allocatedSize <= labelsInArray) {
+                allocatedSize += DEF_ARRAY_SIZE;
+                labelNamesArray = (char **) realloc(labelNamesArray, (allocatedSize) * sizeof(char *));
+            }
+        }
+
         if (strcmp(currentLine, "\n") == 0) {
             memset(currentLine, 0, MAX_WORD_LENGTH);
             memset(tempLine, 0, MAX_WORD_LENGTH);
@@ -89,9 +101,15 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
                     if (token != NULL) {
                         fprintf(stderr, "%s: %s", macroName, ILLEGAL_TEXT_AFTER_MACRO_NAME_ERROR_MESSAGE);
                         free(macroName);  // Free the allocated memory for macroName
+                        for ( i = 0; i < labelsInArray ; i++) {
+                            free(labelNamesArray[i]);
+                        }
+                        free(labelNamesArray);
+
                         return 0;  // Indicate an error
                     }
                 }
+
             }
 
             memset(currentLine, 0, MAX_WORD_LENGTH);
@@ -99,7 +117,6 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
             memset(cutCurrentLine, 0, MAX_WORD_LENGTH);
             continue;
         }
-
         /* reading macro body */
         if (macroStatus == IN_MACRO_BODY) {
 ///////////////////change from here
@@ -118,6 +135,10 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
                     fprintf(stderr, "%s: %s", macroName,ILLEGAL_TEXT_AFTER_MACRO_END_ERROR_MESSAGE);
                     free(macroBody);
                     free(macroName);  // Free the allocated memory for macroName
+                    for ( i = 0; i < labelsInArray; i++) {
+                        free(labelNamesArray[i]);
+                    }
+                    free(labelNamesArray);
                     return 0;  // Indicate an error
                 }
 //////////////////till here
@@ -130,6 +151,10 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
                 if (is_command(macroName)) {
                     /* TODO: print error macro name is an instruction */
                     fprintf(stderr, "%s: %s", macroName, MACRO_NAME_ILLEGAL_ERROR_MESSAGE);
+                    for ( i = 0; i < labelsInArray; i++) {
+                        free(labelNamesArray[i]);
+                    }
+                    free(labelNamesArray);
                     return 0;
                 }
 
@@ -140,6 +165,10 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
                     fprintf(stderr, "Macro %s:\n%s",
                             macroName, MACRO_ALREADY_EXISTS_ERROR_MESSAGE);
                     free(macroName);
+                    for ( i = 0; i < labelsInArray; i++) {
+                        free(labelNamesArray[i]);
+                    }
+                    free(labelNamesArray);
                     return 0;
                 } /* TODO: add more errors */
 
@@ -163,10 +192,23 @@ int read_macros_from_file(FILE* file, hashTable *table, int *longestMacroBody) {
         memset(cutCurrentLine, 0, MAX_WORD_LENGTH);
         endMacro = 1;
     }
-
-    free(macroName);////////////////////////////////////////////////////////////////////////////////////////
+    free(macroName);
     free(macroBody);
+    for(i = 0 ; i < labelsInArray; i++) {
+        if (contains_key(table, labelNamesArray[i])) {
+            fprintf(stderr, "%s: %s", labelNamesArray[i], SAME_MACRO_LABEL_NAME_ERROR_MESSAGE);
+            for (i = 0; i < labelsInArray; i++) {
+                free(labelNamesArray[i]);
+            }
+            free(labelNamesArray);
 
+            return 0;
+        }
+    }
+    for ( i = 0; i < labelsInArray; i++) {
+        free(labelNamesArray[i]);
+    }
+    free(labelNamesArray);
     return 1;
 }
 
@@ -374,4 +416,47 @@ int is_command(char *line) {
 
     /* MOV_CODE = 0, so if it was "mov" it' return false so adding 1 and initializing with -1 in case no condition is met */
     return commandCode+1;
+}
+int containLabel(char **labelNamesArray,char *cutCurrentLine,int labelNamesArraySize,int endOfWord){
+    int i = 0;
+    int isExtern = 1;
+    int wordSize;
+    char *temp;
+    if(cutCurrentLine[i] == '.') {
+        for (i; i < sizeof(EXTERN_COMMAND)-1; i++) {
+            if (cutCurrentLine[i] != EXTERN_COMMAND[i]) {
+            isExtern = 0;
+            break;
+            }
+        }
+        if (isExtern) {
+            while (isspace(cutCurrentLine[i])) i++;
+            wordSize = endOfWord - i;
+            temp = (char *) malloc(sizeof(char *) * wordSize + 1);
+            if (temp == NULL) {
+                errors(22);
+                return 0;
+            }
+            copyWord(&cutCurrentLine[i], temp, wordSize + 1);
+            temp[wordSize + 1] = '\0';
+            labelNamesArray[labelNamesArraySize] = temp;
+            return 1;
+        }
+    }
+    else {
+        while ((isalpha(cutCurrentLine[i]) || isdigit(cutCurrentLine[i]))) i++;
+        if (cutCurrentLine[i] == ':') {
+            temp = (char *) malloc(sizeof(char *) * i);
+            if (temp == NULL) {
+                errors(22);
+                return 0;
+            }
+            copyWord(&cutCurrentLine[0], temp, i);
+            temp[i] = '\0';
+            labelNamesArray[labelNamesArraySize] = temp;
+            return 1;
+        }
+    }
+    return 0;
+
 }
