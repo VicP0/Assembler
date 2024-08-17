@@ -8,7 +8,7 @@ void errors(int error) {
             fprintf(stderr, "First character isnt alphabet\n");
             break;
         case 1:
-            fprintf(stderr, "Size of label is more than 31\n");//cghanged from 30 to 31
+            fprintf(stderr, "Size of label is more than 31\n");
             break;
         case 2:
             fprintf(stderr, "Label contains spaces\n");
@@ -50,31 +50,28 @@ void errors(int error) {
             fprintf(stderr, "Label is named as an operation\n");
             break;
         case 15:
-            fprintf(stderr,"Label is named as a register\n");
+            fprintf(stderr, "Label is named as a register\n");
             break;
         case 16:
-            fprintf(stderr,"Undefined register name\n");
+            fprintf(stderr, "Undefined register name\n");
             break;
         case 17:
-            fprintf(stderr,"Undefined label\n");
+            fprintf(stderr, "Undefined label\n");
             break;
         case 18:
-            fprintf(stderr,"Missing *\n"); //changed
+            fprintf(stderr, "Missing *\n");
             break;
-            /* case 19:
-                 fprintf(stderr,"Missing (\n");//not relevant for us
-                 break; */
         case 19:
-            fprintf(stderr,"Missing paramter\n"); // changed from 20
+            fprintf(stderr, "Missing paramter\n");
             break;
         case 20:
-            fprintf(stderr,"Unexpected text\n"); // changed from 21
+            fprintf(stderr, "Unexpected text\n");
             break;
         case 21:
-            fprintf(stderr,"Invalid label for instruction\n"); // changed from 22
+            fprintf(stderr, "Invalid label for instruction\n");
             break;
         case 22:
-            fprintf(stderr,"Could'nt allocate memory\n"); // changed from 23
+            fprintf(stderr, "Could'nt allocate memory\n");
             break;
     }
 }
