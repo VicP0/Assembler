@@ -59,7 +59,6 @@
 #define SHIFTS_FOR_SECOND_PARAM_REGISTER 3
 
 
-
 #define BIT 1
 
 
