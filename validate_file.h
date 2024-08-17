@@ -10,7 +10,7 @@ int validFile(char *fileToOpen);
 int validLine(char *line);
 
 /* determines to which function we need to send the current line according to the number of operation */
-int sendToOp(char *line,int operation,int copyFrom);
+int sendToOp(char *line, int operation, int copyFrom);
 
 /* determines to which function we need to send the current line according to the number of instruction */
 int sendToInstruction(char *line, int instruction, int copyFrom);
