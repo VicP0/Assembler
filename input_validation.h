@@ -1,24 +1,28 @@
 #include "constants.h"
 #include "lexer.h"
 
-enum status {COMMA,NUMBER,DONE};
+enum status {
+    COMMA, NUMBER, DONE
+};
 
 
 /* checks the validation of first group operations */
-int groupOneFirstArg(char *word,int operation);
+int groupOneFirstArg(char *word, int operation);
+
 int groupOneSecondArg(char *word, int operation);
+
 int firstGroupOps(int operation, char *line);
 
 /* covers cases of registers and labels */
 int validRegister(char *line);
+
 int validLabel(char *line);
+
 int validRegisterAddress(char *line);
 
 /* validate not,clr,inc,dec */
-int secondGroupOps(char *line,int operation);
+int secondGroupOps(char *line, int operation);
 
-/* cover case of jmp,bne,jsr */
-int jumpAddressing(char *line);
 
 int thirdGroupOps(char *line);
 
