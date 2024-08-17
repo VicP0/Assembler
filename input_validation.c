@@ -7,7 +7,7 @@ int firstGroupOps(int operation, char *line) {
     char *firstParameter;
     char *secondParameter;
     int copyFromMem = 0;
-    int numOfWords = 3; /* number of words to encode */ ///////////////////////////////////////check what is it
+    int numOfWords = 3; /* number of words to encode */
 
     /* skip whitespaces */
     while (isspace(line[i]))
@@ -19,18 +19,17 @@ int firstGroupOps(int operation, char *line) {
     wordSize = i - copyFromMem;
     firstParameter = (char *) malloc(sizeof(char *) * wordSize);
 
-    if(firstParameter == NULL){
+    if (firstParameter == NULL) {
         errors(22);
         return 0;
     }
     copyWord(&line[copyFromMem], firstParameter, wordSize);
-    if(line[i] == '\0'){
+    if (line[i] == '\0') {
         errors(19);
         free(firstParameter);
         return 0;
     }
-    if(line[i] != ','){//check maybe thier are spaces before the ,//////////////////////////////////////////////////////
-        /* TODO: error missing comma */
+    if (line[i] != ',') {
         errors(7);
         free(firstParameter);
         return 0;
@@ -41,17 +40,19 @@ int firstGroupOps(int operation, char *line) {
     while (isspace(line[i]) && line[i] != '\0') i++;
     copyFromMem = i; /* start copying the second word */
 
-    if(line[i] == '\0'){
+    if (line[i] == '\0') {
         errors(19);
         free(firstParameter);
         return 0;
     }
-    while ((isalpha(line[i]) || isdigit(line[i])) || line[i] == '#' || line[i] == '+' || line[i] == '-' || line[i] == '*') i++; //changed
+    while ((isalpha(line[i]) || isdigit(line[i])) || line[i] == '#' || line[i] == '+' || line[i] == '-' ||
+           line[i] == '*')
+        i++;
 
     wordSize = i - copyFromMem;
     secondParameter = (char *) malloc(sizeof(char *) * wordSize);
 
-    if(secondParameter == NULL){
+    if (secondParameter == NULL) {
         errors(22);
         return 0;
     }
@@ -59,7 +60,6 @@ int firstGroupOps(int operation, char *line) {
 
 
     if (groupOneFirstArg(firstParameter, operation) == 0) {
-        /* TODO: error */
         free(firstParameter);
         free(secondParameter);
         return 0;
@@ -67,13 +67,12 @@ int firstGroupOps(int operation, char *line) {
 
 
     if (groupOneSecondArg(secondParameter, operation) == 0) {
-        /* TODO: error */
         free(firstParameter);
         free(secondParameter);
         return 0;
     }
 
-    if(!terminatedCorrectly(line, i)){
+    if (!terminatedCorrectly(line, i)) {
         errors(4);
         free(firstParameter);
         free(secondParameter);
@@ -97,8 +96,6 @@ int secondGroupOps(char *line, int operation) {
     int copyFromMem = 0;
     int numOfWords = 2;
     char *argument;
-    //char *firstParam;
-    //char *secondParam;
 
     /* skip whitespaces */
     while (isspace(line[i]) && line[i] != '\0') i++;
@@ -142,7 +139,6 @@ int secondGroupOps(char *line, int operation) {
             }
             while (isspace(line[i]) && line[i] != '\0') i++;
             if (!terminatedCorrectly(line, i)) {
-                /* TODO: error */
                 errors(4);
                 return 0;
             }
@@ -158,24 +154,16 @@ int groupOneFirstArg(char *word, int operation) {
 
     if (operation >= MOV_CODE && operation <= SUB_CODE) {
         if (firstCharacter == '#') {
-            if( immediateAddressing(word) == 0) {
-                /* TODO: error invalid number */
+            if (immediateAddressing(word) == 0) {
                 return 0;
             }
-        } else if (!isLabel(word,0) && !isRegister(word) && !isRegisterAddress(word)) {
+        } else if (!isLabel(word, 0) && !isRegister(word) && !isRegisterAddress(word)) {
             /* not a label, not a register and not a register address*/
             return 0;
         }
     } else if (operation == LEA_CODE && immediateAddressing(word)) {
-        /* TODO: error */
         return 0;
     }
-   // while (!isspace(word[index]) && word[index] != '\0' && word[index] != ',') {
-  //      index++;
- //   }
-//    while (isspace(word[index]) && word[index] != '\0')
-//        index++;
-
     return 1;
 }
 
@@ -184,22 +172,17 @@ int groupOneSecondArg(char *word, int operation) {
     char firstCharacter = word[0];
 
     if (firstCharacter == ',') {
-        /* TODO: error multiple commas */
         return 0;
     } else if (strlen(word) == 0) {
-        /* TODO: missing parameter */
         return 0;
     } else if (operation == CMP_CODE && firstCharacter == '#') {
         if (!(immediateAddressing(word))) {
-            /* TODO: error invalid number */
             return 0;
         } else
             return 1;
-    } else if (!isRegister(word)&&!isLabel(word,0)&&!isRegisterAddress(word)) {
-        /* TODO: error */
+    } else if (!isRegister(word) && !isLabel(word, 0) && !isRegisterAddress(word)) {
         return 0;
     }
-
 
     return 1;
 }
@@ -214,12 +197,13 @@ int validRegister(char *line) {
     }
     return 1;
 }
+
 int validLabel(char *line) {
     if (strlen(line) == 0) {
         /* missing parameter */
         errors(19);
         return 0;
-    } else if (!isLabel(line,0)) {
+    } else if (!isLabel(line, 0)) {
         return 0;
     }
     return 1;
@@ -236,13 +220,13 @@ int validRegisterAddress(char *line) {
     return 1;
 }
 
-int thirdGroupOps(char *line){
+int thirdGroupOps(char *line) {
     int i = 0;
-    while(isalpha(line[i])) i++;
-    return terminatedCorrectly(line,i);
+    while (isalpha(line[i])) i++;
+    return terminatedCorrectly(line, i);
 }
 
-int validData(char *line){
+int validData(char *line) {
     int i = 0;
     enum status state;
     char *currentNum;
@@ -251,35 +235,35 @@ int validData(char *line){
     int numOfWords = 0;
     state = NUMBER;
     /* skip whitespaces */
-    while(isspace(line[i])) i++;
+    while (isspace(line[i])) i++;
 
-    while(line[i] != '\0'){
-        switch(state){
+    while (line[i] != '\0') {
+        switch (state) {
             case NUMBER:
                 numOfWords += 1;
                 copyFromHere = i;
-                while(!isspace(line[i]) && line[i] != ',' && line[i] != '\0') i++;
+                while (!isspace(line[i]) && line[i] != ',' && line[i] != '\0') i++;
                 numOfDigits = i - copyFromHere;
-                currentNum = (char*)malloc(sizeof(char*) * numOfDigits);
-                if(currentNum == NULL){
+                currentNum = (char *) malloc(sizeof(char *) * numOfDigits);
+                if (currentNum == NULL) {
                     errors(22);
                     return 0;
                 }
-                copyWord(&line[copyFromHere],currentNum,numOfDigits);
+                copyWord(&line[copyFromHere], currentNum, numOfDigits);
                 /* invalid number input */
-                if(validNumber(currentNum) == 0){
+                if (validNumber(currentNum) == 0) {
                     free(currentNum);
                     return 0;
                 }
 
                 /* continue running until ',' or '\0' */
-                while(isspace(line[i])) i++;
-                if(line[i] != ',' && line[i] != '\0') {
+                while (isspace(line[i])) i++;
+                if (line[i] != ',' && line[i] != '\0') {
                     free(currentNum);
                     return 0;
                 }
 
-                if(line[i] == '\0')
+                if (line[i] == '\0')
                     state = DONE;
                 else
                     state = COMMA;
@@ -287,8 +271,8 @@ int validData(char *line){
 
             case COMMA:
                 i++;
-                while(isspace(line[i])) i++;
-                if(line[i] != '+' && line[i] != '-' && !isdigit(line[i])) {
+                while (isspace(line[i])) i++;
+                if (line[i] != '+' && line[i] != '-' && !isdigit(line[i])) {
                     errors(10);
                     free(currentNum);
                     return 0;
@@ -305,46 +289,46 @@ int validData(char *line){
     return numOfWords;
 }
 
-int validString(char *line){
+int validString(char *line) {
     int i = 0;
     int finalChar = strlen(line) - 1;
     /*skip whitespaces */
-    while(isspace(line[i])) i++;
+    while (isspace(line[i])) i++;
 
-    if(line[i] != '"' || line[finalChar] != '"')
+    if (line[i] != '"' || line[finalChar] != '"')
         return 0;
     return strlen(&line[i]) - 2;
 }
 
-int validEntryOrExtern(char *line){
+int validEntryOrExtern(char *line) {
     int i = 0;
     int copyFrom = 0;
 
     /*skip whitespaces */
-    while(isspace(line[i])) i++;
+    while (isspace(line[i])) i++;
     copyFrom = i;
 
-    if(line[i] == '\0'){
+    if (line[i] == '\0') {
         errors(19);
         return 0;
     }
 
-    if(isRegister(&line[i])){
+    if (isRegister(&line[i])) {
         errors(21);
         return 0;
     }
 
-    if(isRegisterAddress(&line[i])){
+    if (isRegisterAddress(&line[i])) {
         errors(21);
         return 0;
     }
 
-    while(isalpha(line[i]) || isdigit(line[i])) i++;
-    while(isspace(line[i])) i++;
+    while (isalpha(line[i]) || isdigit(line[i])) i++;
+    while (isspace(line[i])) i++;
 
-    if(line[i] != '\0'){
+    if (line[i] != '\0') {
         errors(4);
         return 0;
     }
-    return isLabel(&line[copyFrom],0);
+    return isLabel(&line[copyFrom], 0);
 }
