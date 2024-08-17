@@ -5,8 +5,6 @@
 #define THIRD_PRIME 86969 /* yet another prime */
 #define START_NUM 37 /* also prime */
 
-const int PRIME_FOR_HASH = 37;
-const int HASH_MOD = 1e9+7;
 
 /* idea for a hash function */
 unsigned int calculate_hash(char *input, int size) {
@@ -15,9 +13,9 @@ unsigned int calculate_hash(char *input, int size) {
     for (i = 0; input[i] != '\0'; i++) {
         /* setting each possible character a code for hashing function:
          * '0'=1, '1'=2,..., '9'=10, 'a'=11, 'b'=12,...,'z'=36, 'A'=37, 'B'=38,...,'Z'=62, '_'=63 */
-        if (islower(input[i])) sum = (sum * FIRST_PRIME) ^ ((input[i]-86) * SECOND_PRIME);  /* sum = (sum + powerPrime * (input[i]-86)) % HASH_MOD; */
-        else if (isupper(input[i])) sum = (sum * FIRST_PRIME) ^ ((input[i]-28) * SECOND_PRIME); /* sum = (sum + powerPrime * (input[i]-28)) % HASH_MOD; */
-        else if (isdigit(input[i])) sum = (sum * FIRST_PRIME) ^ ((input[i]-47) * SECOND_PRIME); /* sum = (sum + powerPrime * (input[i]-47)) % HASH_MOD; */
+        if (islower(input[i])) sum = (sum * FIRST_PRIME) ^ ((input[i] - 86) * SECOND_PRIME);
+        else if (isupper(input[i])) sum = (sum * FIRST_PRIME) ^ ((input[i] - 28) * SECOND_PRIME);
+        else if (isdigit(input[i])) sum = (sum * FIRST_PRIME) ^ ((input[i] - 47) * SECOND_PRIME);
     }
     return sum % size;
 }
@@ -63,7 +61,7 @@ int insert(hashTable *table, char *key, char *value) {
     if (contains_key(table, key)) return HASH_TABLE_INSERT_CONTAINS_KEY_ERROR_CODE;
 
     idx = calculate_hash(key, table->size);
-    last = (hashTableItem*) calloc(1, sizeof(hashTableItem));
+    last = (hashTableItem *) calloc(1, sizeof(hashTableItem));
 
     /* if memory allocation was unsuccessful */
     if (last == NULL) {
@@ -103,13 +101,10 @@ int insert(hashTable *table, char *key, char *value) {
 int contains_key(hashTable *table, char *key) {
     hashTableItem *current;
     int idx = calculate_hash(key, table->size);
-    //printf("%d\n",idx);
     if (table->items[idx] == NULL) return 0;
     current = table->items[idx];
-    //printf("%s\n",current->key);
     if (strcmp(current->key, key) == 0) return 1;
     current = current->next;
-
     while (current) {
         if (strcmp(current->key, key) == 0) return 1;
         current = current->next;
@@ -196,7 +191,7 @@ int insert_int(hashTableInt *table, char *key, int value, int isData) {
     if (contains_key_int(table, key)) return HASH_TABLE_INSERT_CONTAINS_KEY_ERROR_CODE;
 
     idx = calculate_hash(key, table->size);
-    last = (hashTableIntItem*) calloc(1, sizeof(hashTableIntItem));
+    last = (hashTableIntItem *) calloc(1, sizeof(hashTableIntItem));
 
     /* if memory allocation was unsuccessful */
     if (last == NULL) {
